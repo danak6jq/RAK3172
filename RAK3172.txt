@@ -1,0 +1,98 @@
+Configuration	RAK3172
+STM32CubeMX 	6.4.0
+Date	01/10/2022
+MCU	STM32WLE5CCUx
+
+
+
+PERIPHERALS	MODES	FUNCTIONS	PINS
+ADC	Vrefint Channel	ADC_Vref_Input	VP_ADC_Vref_Input
+DEBUG	Serial Wire	DEBUG_JTCK-SWCLK	PA14
+DEBUG	Serial Wire	DEBUG_JTMS-SWDIO	PA13
+RCC	Crystal/Ceramic Resonator	RCC_OSC_IN	OSC_IN
+RCC	Crystal/Ceramic Resonator	RCC_OSC_OUT	OSC_OUT
+RCC	Crystal/Ceramic Resonator	RCC_OSC32_IN	PC14-OSC32_IN
+RCC	Crystal/Ceramic Resonator	RCC_OSC32_OUT	PC15-OSC32_OUT
+RTC	Activate RTC Clock Source	RTC_VS_RTC_Activate	VP_RTC_VS_RTC_Activate
+RTC	RTC Enabled	RTC_VS_RTC_Calendar	VP_RTC_VS_RTC_Calendar
+RTC	Internal Alarm A	RTC_VS_RTC_Alarm_A_Intern	VP_RTC_VS_RTC_Alarm_A_Intern
+SUBGHZ	Activated	SUBGHZ_VS_SUBGHZ	VP_SUBGHZ_VS_SUBGHZ
+SYS	None	SYS_VS_None	VP_SYS_VS_None
+USART2	Asynchronous	USART2_RX	PA3
+USART2	Asynchronous	USART2_TX	PA2
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+6	PB8	GPIO_Output	RF_CTRL1
+7	PA0	GPIO_Output	LED1
+8	PA1	GPIO_Output	LED2
+9	PA2	USART2_TX	
+10	PA3	USART2_RX	
+26	OSC_IN	RCC_OSC_IN	
+27	OSC_OUT	RCC_OSC_OUT	
+32	PB12	GPIO_Input	FREQ_HIGH
+36	PA13	DEBUG_JTMS-SWDIO	
+38	PC13	GPIO_Output	RF_CTRL2
+39	PC14-OSC32_IN	RCC_OSC32_IN	
+40	PC15-OSC32_OUT	RCC_OSC32_OUT	
+42	PA14	DEBUG_JTCK-SWCLK	
+PERIPHERALS	MODES	FUNCTIONS	PINS
+ADC	Vrefint Channel	ADC_Vref_Input	VP_ADC_Vref_Input
+DEBUG	Serial Wire	DEBUG_JTCK-SWCLK	PA14
+DEBUG	Serial Wire	DEBUG_JTMS-SWDIO	PA13
+RCC	Crystal/Ceramic Resonator	RCC_OSC_IN	OSC_IN
+RCC	Crystal/Ceramic Resonator	RCC_OSC_OUT	OSC_OUT
+RCC	Crystal/Ceramic Resonator	RCC_OSC32_IN	PC14-OSC32_IN
+RCC	Crystal/Ceramic Resonator	RCC_OSC32_OUT	PC15-OSC32_OUT
+RTC	Activate RTC Clock Source	RTC_VS_RTC_Activate	VP_RTC_VS_RTC_Activate
+RTC	RTC Enabled	RTC_VS_RTC_Calendar	VP_RTC_VS_RTC_Calendar
+RTC	Internal Alarm A	RTC_VS_RTC_Alarm_A_Intern	VP_RTC_VS_RTC_Alarm_A_Intern
+SUBGHZ	Activated	SUBGHZ_VS_SUBGHZ	VP_SUBGHZ_VS_SUBGHZ
+SYS	None	SYS_VS_None	VP_SYS_VS_None
+USART2	Asynchronous	USART2_RX	PA3
+USART2	Asynchronous	USART2_TX	PA2
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+6	PB8	GPIO_Output	RF_CTRL1
+7	PA0	GPIO_Output	LED1
+8	PA1	GPIO_Output	LED2
+9	PA2	USART2_TX	
+10	PA3	USART2_RX	
+26	OSC_IN	RCC_OSC_IN	
+27	OSC_OUT	RCC_OSC_OUT	
+32	PB12	GPIO_Input	FREQ_HIGH
+36	PA13	DEBUG_JTMS-SWDIO	
+38	PC13	GPIO_Output	RF_CTRL2
+39	PC14-OSC32_IN	RCC_OSC32_IN	
+40	PC15-OSC32_OUT	RCC_OSC32_OUT	
+42	PA14	DEBUG_JTCK-SWCLK	
+
+
+
+SOFTWARE PROJECT
+
+Project Settings : 
+Project Name : RAK3172
+Project Folder : C:\Users\danam\STM32CubeIDE\workspace_1.7.0\RAK3172
+Toolchain / IDE : STM32CubeIDE
+Firmware Package Name and Version : STM32Cube FW_WL V1.1.0
+
+
+Code Generation Settings : 
+STM32Cube MCU packages and embedded software packs : Copy only the necessary library files
+Generate peripheral initialization as a pair of '.c/.h' files per peripheral : Yes
+Backup previously generated files when re-generating : Yes
+Delete previously generated files when not re-generated : Yes
+Set all free pins as analog (to optimize the power consumption) : No
+
+
+Toolchains Settings : 
+Compiler Optimizations : 
+
+
+
+
+
