@@ -40,7 +40,7 @@ void MX_ADC_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc.Instance = ADC;
-  hadc.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
+  hadc.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV64;
   hadc.Init.Resolution = ADC_RESOLUTION_12B;
   hadc.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc.Init.ScanConvMode = ADC_SCAN_DISABLE;
@@ -54,8 +54,8 @@ void MX_ADC_Init(void)
   hadc.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc.Init.DMAContinuousRequests = DISABLE;
   hadc.Init.Overrun = ADC_OVR_DATA_PRESERVED;
-  hadc.Init.SamplingTimeCommon1 = ADC_SAMPLETIME_1CYCLE_5;
-  hadc.Init.SamplingTimeCommon2 = ADC_SAMPLETIME_1CYCLE_5;
+  hadc.Init.SamplingTimeCommon1 = ADC_SAMPLETIME_160CYCLES_5;
+  hadc.Init.SamplingTimeCommon2 = ADC_SAMPLETIME_160CYCLES_5;
   hadc.Init.OversamplingMode = DISABLE;
   hadc.Init.TriggerFrequencyMode = ADC_TRIGGER_FREQ_HIGH;
   if (HAL_ADC_Init(&hadc) != HAL_OK)
@@ -71,13 +71,34 @@ void MX_ADC_Init(void)
 void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
 {
 
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
   if(adcHandle->Instance==ADC)
   {
   /* USER CODE BEGIN ADC_MspInit 0 */
 
   /* USER CODE END ADC_MspInit 0 */
+  /** Initializes the peripherals clocks
+  */
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+    PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_HSI;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
     /* ADC clock enable */
     __HAL_RCC_ADC_CLK_ENABLE();
+
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    /**ADC GPIO Configuration
+    PB3     ------> ADC_IN2
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_3;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
   /* USER CODE BEGIN ADC_MspInit 1 */
 
   /* USER CODE END ADC_MspInit 1 */
@@ -94,6 +115,12 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
   /* USER CODE END ADC_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_ADC_CLK_DISABLE();
+
+    /**ADC GPIO Configuration
+    PB3     ------> ADC_IN2
+    */
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_3);
+
   /* USER CODE BEGIN ADC_MspDeInit 1 */
 
   /* USER CODE END ADC_MspDeInit 1 */

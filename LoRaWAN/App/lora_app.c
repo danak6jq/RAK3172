@@ -137,6 +137,8 @@ static void OnRxTimerLedEvent(void *context);
   */
 static void OnJoinTimerLedEvent(void *context);
 
+static uint8_t LocalGetBatteryLevel(void);
+
 /* USER CODE END PFP */
 
 /* Private variables ---------------------------------------------------------*/
@@ -147,7 +149,7 @@ static ActivationType_t ActivationType = LORAWAN_DEFAULT_ACTIVATION_TYPE;
   */
 static LmHandlerCallbacks_t LmHandlerCallbacks =
 {
-  .GetBatteryLevel =           GetBatteryLevel,
+  .GetBatteryLevel =           LocalGetBatteryLevel,
   .GetTemperature =            GetTemperatureLevel,
   .GetUniqueId =               GetUniqueId,
   .GetDevAddr =                GetDevAddr,
@@ -214,6 +216,61 @@ static UTIL_TIMER_Object_t JoinLedTimer;
 
 /* Exported functions ---------------------------------------------------------*/
 /* USER CODE BEGIN EF */
+
+static uint8_t
+mvToLoRaWanBattVal(uint16_t mvolts)
+{ // * 2.55
+	uint16_t bv;
+
+	if (mvolts < 3300)
+		return (0);
+
+	if (mvolts < 3600)
+	{
+		mvolts -= 3300;
+		return ((mvolts / 30) * 2.55);
+	}
+
+	mvolts -= 3600;
+	bv = (10 + (mvolts * 0.15F)) * 2.55;
+	if (bv > 254) {
+		bv = 254;
+	}
+
+	return (bv);
+}
+
+static uint8_t
+LocalGetBatteryLevel(void)
+{
+  uint8_t batteryLevel = 0;
+  uint16_t batteryLevelmV;
+
+  batteryLevelmV = (uint16_t) BSP_GetBatteryLevel();
+
+#if 0
+  /* Convert battery level from mV to linear scale: 1 (very low) to 254 (fully charged) */
+  if (batteryLevelmV > VDD_BAT)
+  {
+    batteryLevel = LORAWAN_MAX_BAT;
+  }
+  else if (batteryLevelmV < VDD_MIN)
+  {
+    batteryLevel = 0;
+  }
+  else
+  {
+    batteryLevel = (((uint32_t)(batteryLevelmV - VDD_MIN) * LORAWAN_MAX_BAT) / (VDD_BAT - VDD_MIN));
+  }
+#endif
+
+  /* convert battery using Li-Ion curve */
+  batteryLevel = mvToLoRaWanBattVal(batteryLevelmV);
+
+  APP_LOG(TS_ON, VLEVEL_M, "VDDA= %d\r\n", batteryLevel);
+
+  return batteryLevel;  /* 1 (very low) to 254 (fully charged) */
+}
 
 /* USER CODE END EF */
 
@@ -373,12 +430,12 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
           if (AppLedStateOn == RESET)
           {
             APP_LOG(TS_OFF, VLEVEL_H,   "LED OFF\r\n");
-            BSP_LED_Off(LED_RED) ;
+            BSP_LED_Off(LED_GREEN) ;
           }
           else
           {
             APP_LOG(TS_OFF, VLEVEL_H, "LED ON\r\n");
-            BSP_LED_On(LED_RED) ;
+            BSP_LED_On(LED_GREEN) ;
           }
         }
         break;
@@ -496,7 +553,7 @@ static void OnTxTimerEvent(void *context)
 /* USER CODE BEGIN PrFD_LedEvents */
 static void OnTxTimerLedEvent(void *context)
 {
-  BSP_LED_Off(LED_GREEN) ;
+  // BSP_LED_Off(LED_GREEN) ;
 }
 
 static void OnRxTimerLedEvent(void *context)
@@ -519,7 +576,7 @@ static void OnTxData(LmHandlerTxParams_t *params)
     /* Process Tx event only if its a mcps response to prevent some internal events (mlme) */
     if (params->IsMcpsConfirm != 0)
     {
-      BSP_LED_On(LED_GREEN) ;
+      // BSP_LED_On(LED_GREEN) ;
       UTIL_TIMER_Start(&TxLedTimer);
 
       APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### ========== MCPS-Confirm =============\r\n");
@@ -585,4 +642,3 @@ static void OnMacProcessNotify(void)
 
   /* USER CODE END OnMacProcessNotify_2 */
 }
-

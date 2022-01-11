@@ -117,7 +117,7 @@ extern "C" {
 /*!
  * Application root key
  */
-#define LORAWAN_APP_KEY                                    78,BC,B4,59,7C,EA,42,E7,C0,4D,8D,EB,4E,E7,2B,9C
+#define LORAWAN_APP_KEY                                    88,BC,B4,59,7C,EA,42,E7,C0,4D,8D,EB,4E,E7,2B,9C
 
 /*!
  * Network root key

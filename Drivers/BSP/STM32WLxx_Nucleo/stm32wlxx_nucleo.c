@@ -21,6 +21,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32wlxx_nucleo.h"
 
+#include "adc.h"
+
 /** @addtogroup BSP
   * @{
   */ 
@@ -388,6 +390,86 @@ __weak void BSP_PB_Callback(Button_TypeDef Button)
 
   /* This function should be implemented by the user application.
      It is called into this driver when an event on Button is triggered. */
+}
+
+
+/*
+ *
+ */
+static uint32_t
+BSP_ADC_ReadChannels(uint32_t channel)
+{
+  uint32_t ADCxConvertedValues = 0;
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  MX_ADC_Init();
+
+  /* Start Calibration */
+  if (HAL_ADCEx_Calibration_Start(&hadc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /* Configure Regular Channel */
+  sConfig.Channel = channel;
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLINGTIME_COMMON_1;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  if (HAL_ADC_Start(&hadc) != HAL_OK)
+  {
+    /* Start Error */
+    Error_Handler();
+  }
+  /** Wait for end of conversion */
+  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+
+  /** Wait for end of conversion */
+  HAL_ADC_Stop(&hadc) ;   /* it calls also ADC_Disable() */
+
+  ADCxConvertedValues = HAL_ADC_GetValue(&hadc);
+
+  HAL_ADC_DeInit(&hadc);
+
+  return ADCxConvertedValues;
+}
+
+uint16_t
+BSP_GetBatteryLevel(void)
+{
+  uint16_t batteryLevelmV = 0;
+  uint32_t measuredLevel = 0;
+
+  measuredLevel = BSP_ADC_ReadChannels(ADC_CHANNEL_2);
+
+  if (measuredLevel == 0)
+  {
+    batteryLevelmV = 0;
+  }
+  else
+  {
+#if 0
+    if ((uint32_t)*VREFINT_CAL_ADDR != (uint32_t)0xFFFFU)
+    {
+      /* Device with Reference voltage calibrated in production:
+         use device optimized parameters */
+      batteryLevelmV = __LL_ADC_CALC_VREFANALOG_VOLTAGE(measuredLevel,
+                                                        ADC_RESOLUTION_12B);
+    }
+    else
+    {
+      /* Device with Reference voltage not calibrated in production:
+         use generic parameters */
+      batteryLevelmV = (VREFINT_CAL_VREF * 1510) / measuredLevel;
+    }
+#endif
+    batteryLevelmV = (measuredLevel * 16500) / 12288;
+  }
+
+  return batteryLevelmV;
 }
 
 /**

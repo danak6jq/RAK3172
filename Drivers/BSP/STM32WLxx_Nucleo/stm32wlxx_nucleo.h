@@ -306,6 +306,8 @@ int32_t          BSP_PB_DeInit(Button_TypeDef Button);
 int32_t          BSP_PB_GetState(Button_TypeDef Button);
 void             BSP_PB_Callback(Button_TypeDef Button);
 void             BSP_PB_IRQHandler(Button_TypeDef Button);
+
+uint16_t		BSP_GetBatteryLevel(void);
 /**
   * @}
   */
