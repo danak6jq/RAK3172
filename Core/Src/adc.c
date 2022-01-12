@@ -53,7 +53,7 @@ void MX_ADC_Init(void)
   hadc.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc.Init.DMAContinuousRequests = DISABLE;
-  hadc.Init.Overrun = ADC_OVR_DATA_PRESERVED;
+  hadc.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
   hadc.Init.SamplingTimeCommon1 = ADC_SAMPLETIME_160CYCLES_5;
   hadc.Init.SamplingTimeCommon2 = ADC_SAMPLETIME_160CYCLES_5;
   hadc.Init.OversamplingMode = DISABLE;
@@ -81,7 +81,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
   /** Initializes the peripherals clocks
   */
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_ADC;
-    PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_HSI;
+    PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_SYSCLK;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
     {
       Error_Handler();
