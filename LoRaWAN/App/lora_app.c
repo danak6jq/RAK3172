@@ -246,7 +246,7 @@ LocalGetBatteryLevel(void)
   uint8_t batteryLevel = 0;
   uint16_t batteryLevelmV;
 
-  batteryLevelmV = (uint16_t) BSP_GetBatteryLevel();
+  batteryLevelmV = (uint16_t) BSP_RAK5005_GetBatteryLevel();
 
 #if 0
   /* Convert battery level from mV to linear scale: 1 (very low) to 254 (fully charged) */
@@ -278,6 +278,7 @@ void LoRaWAN_Init(void)
 {
   /* USER CODE BEGIN LoRaWAN_Init_1 */
 
+  BSP_RAK5005_Init();
   BSP_LED_Init(LED_BLUE);
   BSP_LED_Init(LED_GREEN);
   // BSP_LED_Init(LED_RED);

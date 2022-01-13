@@ -438,7 +438,7 @@ BSP_ADC_ReadChannels(uint32_t channel)
 }
 
 uint16_t
-BSP_GetBatteryLevel(void)
+BSP_RAK5005_GetBatteryLevel(void)
 {
   uint16_t batteryLevelmV = 0;
   uint32_t measuredLevel = 0;
@@ -683,6 +683,77 @@ int fputc (int ch, FILE *f)
   * @}
   */ 
 #endif /* (USE_BSP_COM_FEATURE > 0) */
+
+/*
+ *
+ */
+int32_t
+BSP_RAK5005_Init(void)
+{
+	GPIO_InitTypeDef gpio_init_structure = {0};
+
+	/* Enable the GPIO Clocks */
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+
+	/* Configure the GPIO pins */
+	gpio_init_structure.Pin = GPIO_PIN_8;
+	gpio_init_structure.Mode = GPIO_MODE_OUTPUT_PP;
+	gpio_init_structure.Pull = GPIO_NOPULL;
+	gpio_init_structure.Speed = GPIO_SPEED_FREQ_HIGH;
+
+	HAL_GPIO_Init(GPIOA, &gpio_init_structure);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+
+	gpio_init_structure.Pin = GPIO_PIN_11;
+
+	HAL_GPIO_Init(GPIOA, &gpio_init_structure);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_RESET);
+
+	gpio_init_structure.Pin = GPIO_PIN_2;
+
+	HAL_GPIO_Init(GPIOB, &gpio_init_structure);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
+
+	gpio_init_structure.Pin = GPIO_PIN_12;
+
+	HAL_GPIO_Init(GPIOB, &gpio_init_structure);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+
+	/* reset the relay */
+	BSP_RAK5005_Relay_Off();
+
+	return BSP_ERROR_NONE;
+}
+
+int32_t			BSP_RAK5005_DeInit(void);
+
+int32_t			BSP_RAK5005_Relay_On(void)
+{
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET);
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+
+	return BSP_ERROR_NONE;
+}
+
+int32_t
+BSP_RAK5005_Relay_Off(void)
+{
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+
+	return BSP_ERROR_NONE;
+}
+
+int32_t			BSP_RAK5005_Opto_GetState(void);
 
 /**
   * @}
