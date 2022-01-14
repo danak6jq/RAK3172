@@ -385,6 +385,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
 {
   /* USER CODE BEGIN OnRxData_1 */
+  UTIL_TIMER_Time_t nextTxIn = 0;
+
   if ((appData != NULL) || (params != NULL))
   {
     BSP_LED_On(LED_BLUE) ;
@@ -424,20 +426,27 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
           }
         }
         break;
+
       case LORAWAN_USER_APP_PORT:
-        if (appData->BufferSize == 1)
-        {
+        if (appData->BufferSize == 1) {
           AppLedStateOn = appData->Buffer[0] & 0x01;
-          if (AppLedStateOn == RESET)
-          {
-            APP_LOG(TS_OFF, VLEVEL_H,   "LED OFF\r\n");
-            BSP_LED_Off(LED_GREEN) ;
+
+          if (AppLedStateOn == RESET) {
+            APP_LOG(TS_OFF, VLEVEL_H,   "Switch OFF\r\n");
+            BSP_RAK5005_Relay_Off();
+          } else {
+            APP_LOG(TS_OFF, VLEVEL_H, "Switch ON\r\n");
+            BSP_RAK5005_Relay_On();
           }
-          else
-          {
-            APP_LOG(TS_OFF, VLEVEL_H, "LED ON\r\n");
-            BSP_LED_On(LED_GREEN) ;
-          }
+
+          /* send confirmation */
+          AppData.Port = LORAWAN_USER_APP_PORT;
+          AppData.Buffer[0] = 0x40;
+          AppData.Buffer[1] = appData->Buffer[0];
+          AppData.BufferSize = 2;
+          APP_LOG(TS_OFF, VLEVEL_M, "Rx Send Buffer: %x\r\n", AppData.Buffer);
+
+          LmHandlerSend(&AppData, LORAWAN_DEFAULT_CONFIRMED_MSG_STATE, &nextTxIn, false);
         }
         break;
 
@@ -525,6 +534,7 @@ static void SendTxData(void)
   AppData.BufferSize = i;
 #endif /* CAYENNE_LPP */
 
+  APP_LOG(TS_OFF, VLEVEL_M, "Send UL Buffer: %x\r\n", AppData.Buffer);
   if (LORAMAC_HANDLER_SUCCESS == LmHandlerSend(&AppData, LORAWAN_DEFAULT_CONFIRMED_MSG_STATE, &nextTxIn, false))
   {
     APP_LOG(TS_ON, VLEVEL_L, "SEND REQUEST\r\n");
@@ -593,6 +603,8 @@ static void OnTxData(LmHandlerTxParams_t *params)
       {
         APP_LOG(TS_OFF, VLEVEL_H, "UNCONFIRMED\r\n");
       }
+
+      APP_LOG(TS_OFF, VLEVEL_M, "Buffer: %x\r\n", params->AppData.Buffer);
     }
   }
   /* USER CODE END OnTxData_1 */
@@ -601,6 +613,11 @@ static void OnTxData(LmHandlerTxParams_t *params)
 static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
 {
   /* USER CODE BEGIN OnJoinRequest_1 */
+  static uint8_t AppDataBuffer[2];
+  static LmHandlerAppData_t AppData = { 0, 0, AppDataBuffer };
+
+  UTIL_TIMER_Time_t nextTxIn = 0;
+
   if (joinParams != NULL)
   {
     if (joinParams->Status == LORAMAC_HANDLER_SUCCESS)
@@ -617,6 +634,13 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
       {
         APP_LOG(TS_OFF, VLEVEL_M, "OTAA =====================\r\n");
       }
+
+      AppData.Port = LORAWAN_USER_APP_PORT;
+      AppData.Buffer[0] = 0x10;
+      AppData.Buffer[1] = 0x01;
+      AppData.BufferSize = 2;
+      APP_LOG(TS_OFF, VLEVEL_M, "Join UL Buffer: %x\r\n", AppData.Buffer);
+      LmHandlerSend(&AppData, LORAWAN_DEFAULT_CONFIRMED_MSG_STATE, &nextTxIn, true);
     }
     else
     {
