@@ -81,6 +81,8 @@ static void tiny_snprintf_like(char *buf, uint32_t maxsize, const char *strForma
 
 /* USER CODE BEGIN PFP */
 
+static uint8_t mvToLoRaWanBattVal(uint16_t mvolts);
+
 /* USER CODE END PFP */
 
 /* Exported functions ---------------------------------------------------------*/
@@ -174,6 +176,13 @@ uint8_t GetBatteryLevel(void)
   APP_LOG(TS_ON, VLEVEL_M, "VDDA= %d\r\n", batteryLevel);
 
   /* USER CODE BEGIN GetBatteryLevel_2 */
+
+  batteryLevelmV = (uint16_t) BSP_RAK5005_GetBatteryLevel();
+
+  /* convert battery using Li-Ion curve */
+  batteryLevel = mvToLoRaWanBattVal(batteryLevelmV);
+
+  APP_LOG(TS_ON, VLEVEL_M, "Li-Ion VDDA= %d\r\n", batteryLevel);
 
   /* USER CODE END GetBatteryLevel_2 */
 
@@ -308,6 +317,30 @@ static void tiny_snprintf_like(char *buf, uint32_t maxsize, const char *strForma
 }
 
 /* USER CODE BEGIN PrFD */
+
+static uint8_t
+mvToLoRaWanBattVal(uint16_t mvolts)
+{ // * 2.55
+	uint16_t bv;
+
+	if (mvolts < 3300)
+		return (0);
+
+	if (mvolts < 3600)
+	{
+		mvolts -= 3300;
+		return ((mvolts / 30) * 2.55);
+	}
+
+	mvolts -= 3600;
+	bv = (10 + (mvolts * 0.15F)) * 2.55;
+	if (bv > 254) {
+		bv = 254;
+	}
+
+	return (bv);
+}
+
 
 /* USER CODE END PrFD */
 
