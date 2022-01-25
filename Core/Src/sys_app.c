@@ -341,7 +341,6 @@ mvToLoRaWanBattVal(uint16_t mvolts)
 	return (bv);
 }
 
-
 /* USER CODE END PrFD */
 
 /* HAL overload functions ---------------------------------------------------------*/

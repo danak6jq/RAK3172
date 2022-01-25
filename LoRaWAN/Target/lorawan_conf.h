@@ -40,7 +40,7 @@ extern "C" {
 /* Region ------------------------------------*/
 /* the region listed here will be linked in the MW code */
 /* the application (on sys_conf.h) shall just configure one region at the time */
-/*#define REGION_AS923*/
+#define REGION_AS923
 /*#define REGION_AU915*/
 /*#define REGION_CN470*/
 /*#define REGION_CN779*/
