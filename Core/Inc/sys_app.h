@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 STMicroelectronics.
+  * Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -88,7 +88,7 @@ uint8_t GetBatteryLevel(void);
   * @brief  callback to get the current temperature in the MCU
   * @retval temperature level
   */
-uint16_t GetTemperatureLevel(void);
+int16_t GetTemperatureLevel(void);
 
 /**
   * @brief  callback to get the board 64 bits unique ID
@@ -111,4 +111,3 @@ uint32_t GetDevAddr(void);
 #endif
 
 #endif /* __SYS_APP_H__ */
-

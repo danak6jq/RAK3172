@@ -294,7 +294,7 @@ int32_t BSP_PB_Init(Button_TypeDef Button, ButtonMode_TypeDef ButtonMode)
 {
   GPIO_InitTypeDef gpio_init_structure = {0};
   static BSP_EXTI_LineCallback button_callback[BUTTONn] = {BUTTON_SW1_EXTI_Callback, NULL, NULL};
-  static uint32_t button_interrupt_priority[BUTTONn] = {BSP_BUTTON_SWx_IT_PRIORITY, BSP_BUTTON_SWx_IT_PRIORITY, BSP_BUTTON_SWx_IT_PRIORITY};
+  static uint32_t button_interrupt_priority[BUTTONn] = {BSP_BUTTON_USER_IT_PRIORITY, BSP_BUTTON_USER_IT_PRIORITY, BSP_BUTTON_USER_IT_PRIORITY};
   static const uint32_t button_exti_line[BUTTONn] = {BUTTON_SW1_EXTI_LINE, BUTTON_SW2_EXTI_LINE, BUTTON_SW3_EXTI_LINE};
 
   if (button_callback[Button] == NULL) {

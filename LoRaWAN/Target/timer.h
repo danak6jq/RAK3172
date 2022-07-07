@@ -5,7 +5,7 @@
   * @author  MCD Application Team
   * @brief   Wrapper to timer server
   ******************************************************************************
-    * @attention
+  * @attention
   *
   * Copyright (c) 2022 STMicroelectronics.
   * All rights reserved.
@@ -115,4 +115,3 @@ extern "C" {
 #endif
 
 #endif /* __TIMER_H__*/
-

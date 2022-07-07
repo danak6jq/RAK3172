@@ -44,10 +44,6 @@ extern "C" {
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
-/* USER CODE BEGIN DBG_GPIO_RADIO */
-#define DBG_GPIO_RADIO_RX(set_rst) /*PROBE_GPIO_##set_rst##_LINE(PROBE_LINE1_PORT, PROBE_LINE1_PIN);*/
-#define DBG_GPIO_RADIO_TX(set_rst) /*PROBE_GPIO_##set_rst##_LINE(PROBE_LINE2_PORT, PROBE_LINE2_PIN);*/
-/* USER CODE END DBG_GPIO_RADIO */
 
 /**
   * @brief drive value used anytime radio is NOT in TX low power mode
@@ -153,4 +149,3 @@ extern "C" {
 #endif
 
 #endif /* __RADIO_CONF_H__*/
-

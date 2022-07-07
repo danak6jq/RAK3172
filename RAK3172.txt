@@ -1,6 +1,6 @@
 Configuration	RAK3172
-STM32CubeMX 	6.4.0
-Date	01/25/2022
+STM32CubeMX 	6.6.0
+Date	07/06/2022
 MCU	STM32WLE5CCUx
 
 
@@ -84,7 +84,7 @@ Project Settings :
 Project Name : RAK3172
 Project Folder : C:\Users\danam\STM32CubeIDE\workspace_1.7.0\RAK3172
 Toolchain / IDE : STM32CubeIDE
-Firmware Package Name and Version : STM32Cube FW_WL V1.1.0
+Firmware Package Name and Version : STM32Cube FW_WL V1.2.0
 
 
 Code Generation Settings : 

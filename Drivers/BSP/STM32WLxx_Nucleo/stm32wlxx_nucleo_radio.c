@@ -8,7 +8,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2020(-2021) STMicroelectronics.
+  * Copyright (c) 2020-2021 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -25,7 +25,7 @@
 
 /** @addtogroup BSP
   * @{
-  */ 
+  */
 
 /** @addtogroup STM32WLXX_NUCLEO
   * @{
@@ -181,8 +181,26 @@ int32_t BSP_RADIO_IsDCDC(void)
 }
 
 /**
-  * @}
+  * @brief  Return RF Output Max Power Configuration
+  * @retval
+  *    RADIO_CONF_RFO_LP_MAX_15_dBm for LP mode
+  *    RADIO_CONF_RFO_HP_MAX_22_dBm for HP mode
   */
+int32_t BSP_RADIO_GetRFOMaxPowerConfig(BSP_RADIO_RFOMaxPowerConfig_TypeDef Config)
+{
+  int32_t ret;
+
+  if(Config == RADIO_RFO_LP_MAXPOWER)
+  {
+    ret = RADIO_CONF_RFO_LP_MAX_15_dBm;
+  }
+  else
+  {
+    ret = RADIO_CONF_RFO_HP_MAX_22_dBm;
+  }
+
+  return ret;
+}
 
 /**
   * @}
@@ -194,6 +212,8 @@ int32_t BSP_RADIO_IsDCDC(void)
 
 /**
   * @}
-  */    
+  */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+/**
+  * @}
+  */
