@@ -5,6 +5,7 @@
  *      Author: Dana H. Myers
  */
 
+/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef STM32WLXX_NUCLEO_H
 #define STM32WLXX_NUCLEO_H
 

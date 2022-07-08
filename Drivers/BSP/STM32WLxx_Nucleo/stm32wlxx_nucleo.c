@@ -402,6 +402,12 @@ BSP_ADC_ReadChannels(uint32_t channel)
   uint32_t ADCxConvertedValues = 0;
   ADC_ChannelConfTypeDef sConfig = {0};
 
+  /* make sure HSI is running */
+  LL_RCC_HSI_Enable();
+  while (!LL_RCC_HSI_IsReady()) {
+	  // spin
+  }
+
   MX_ADC_Init();
 
   /* Start Calibration */
@@ -424,6 +430,7 @@ BSP_ADC_ReadChannels(uint32_t channel)
     /* Start Error */
     Error_Handler();
   }
+
   /** Wait for end of conversion */
   HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
 
@@ -437,9 +444,32 @@ BSP_ADC_ReadChannels(uint32_t channel)
   return ADCxConvertedValues;
 }
 
+uint32_t
+BSP_ReadVrefmV()
+{
+	uint32_t measuredLevel = 0;
+	uint32_t vRefmV = 0;
+
+	measuredLevel = BSP_ADC_ReadChannels(ADC_CHANNEL_VREFINT);
+
+	if ((uint32_t) *VREFINT_CAL_ADDR != (uint32_t) 0xFFFFU) {
+		/* Device with Reference voltage calibrated in production:
+		 use device optimized parameters */
+		vRefmV = __LL_ADC_CALC_VREFANALOG_VOLTAGE(measuredLevel,
+				ADC_RESOLUTION_12B);
+	} else {
+		/* Device with Reference voltage not calibrated in production:
+		 use generic parameters */
+		vRefmV = (VREFINT_CAL_VREF * 1510) / measuredLevel;
+	}
+
+	return (vRefmV);
+}
+
 uint16_t
 BSP_RAK5005_GetBatteryLevel(void)
-{
+ {
+#if 0
   uint16_t batteryLevelmV = 0;
   uint32_t measuredLevel = 0;
 
@@ -451,25 +481,24 @@ BSP_RAK5005_GetBatteryLevel(void)
   }
   else
   {
-#if 0
-    if ((uint32_t)*VREFINT_CAL_ADDR != (uint32_t)0xFFFFU)
-    {
-      /* Device with Reference voltage calibrated in production:
-         use device optimized parameters */
-      batteryLevelmV = __LL_ADC_CALC_VREFANALOG_VOLTAGE(measuredLevel,
-                                                        ADC_RESOLUTION_12B);
-    }
-    else
-    {
-      /* Device with Reference voltage not calibrated in production:
-         use generic parameters */
-      batteryLevelmV = (VREFINT_CAL_VREF * 1510) / measuredLevel;
-    }
-#endif
-    batteryLevelmV = (measuredLevel * 16500) / 12288;
+    batteryLevelmV = (measuredLevel * 4125) / 12288;
   }
 
   return batteryLevelmV;
+#else
+	uint16_t batteryLevelmV = 0;
+	uint32_t measuredLevel = 0;
+
+	measuredLevel = BSP_ADC_ReadChannels(ADC_CHANNEL_2);
+
+	if (measuredLevel == 0) {
+		batteryLevelmV = 0;
+	} else {
+		batteryLevelmV = (measuredLevel * BSP_ReadVrefmV() * 3) / (4095 * 2);
+	}
+
+	return batteryLevelmV;
+#endif
 }
 
 /**
@@ -720,6 +749,9 @@ BSP_RAK5005_Init(void)
 	HAL_GPIO_Init(GPIOB, &gpio_init_structure);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
 
+	/* power up the RAK5005 */
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+
 	/* reset the relay */
 	BSP_RAK5005_Relay_Off();
 
@@ -730,12 +762,12 @@ int32_t			BSP_RAK5005_DeInit(void);
 
 int32_t			BSP_RAK5005_Relay_On(void)
 {
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
-	HAL_Delay(100);
+	// HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+	// HAL_Delay(100);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET);
 	HAL_Delay(100);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+	// HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
 
 	return BSP_ERROR_NONE;
 }
@@ -743,12 +775,12 @@ int32_t			BSP_RAK5005_Relay_On(void)
 int32_t
 BSP_RAK5005_Relay_Off(void)
 {
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
-	HAL_Delay(100);
+	// HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+	// HAL_Delay(100);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
 	HAL_Delay(100);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+	// HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
 
 	return BSP_ERROR_NONE;
 }

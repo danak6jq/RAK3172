@@ -29,6 +29,8 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include "stdint.h"
+#include "LmHandlerTypes.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -49,7 +51,7 @@ extern "C" {
 /*!
  * Defines the application data transmission duty cycle. 10s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            900000
+#define APP_TX_DUTYCYCLE                            7200000
 
 /*!
  * LoRaWAN User application port
@@ -119,6 +121,88 @@ extern "C" {
 #define LORAWAN_DEFAULT_CLASS_B_C_RESP_TIMEOUT      8000
 
 /* USER CODE BEGIN EC */
+
+/*
+ * UL formats
+ *
+ * STATUS (port 4)
+ * 	byte 0: UL_ID_STATUS (0x01)
+ * 	byte 1:
+ * 		bit 0: switch state
+ * 		bit 1: input state
+ * 		bit 2: RFU
+ * 		bit 3: RFU
+ * 		bit 4: switch state changed
+ * 		bit 5: input state changed
+ * 		bit 6: RFU
+ * 		bit 7: RFU
+ *
+ * ERROR (port 5)
+ * 	byte 0: UL_ID_ERROR (0x03)
+ * 	byte 1: error code RFU
+ *
+ * ID/VERSION (port 240)
+ * 	byte 0: UL_ID_ID (0x00)
+ * 	byte 1, 2: MOTE_ID (Big-endian)
+ * 	byte 2, 3: FW_VERSION (Big-endian)
+ *
+ * OTA configuration: RFU
+ *
+ * DL formats
+ *
+ * SWITCH (port 4)
+ * 	byte 0: DL_ID_SWITCH (0x00)
+ * 	byte 1:
+ * 		bit 0: switch state
+ * 		bit 1-7: RFU
+ * 	If switch is being turned-on, include the period
+ * 	byte 2..4: 24-bit on time in seconds (BE)
+ *
+ *	If switch is being turned-off, do not include the period
+ *
+ * OTA configuration: RFU
+ *
+ * Periodic UL:
+ *   UL_ID_STATUS every 2 hours, confirmed, Link Check Req
+ *
+ * UL Queue
+ *
+ */
+
+/*
+ * Uplink Queue element types
+ */
+#define	UL_ID_ID			0		/* FW ID/version payload */
+#define	UL_ID_STATUS		1		/* current status bits */
+#define	UL_ID_ERROR			3		/* unknown DL received */
+
+#define	UL_PORT_ID			240
+#define	UL_PORT_STATUS		4
+#define	UL_PORT_ERROR		5
+
+#define	DL_ID_SWITCH		0		/* set switch state */
+
+#define	DL_PORT_SWITCH		4
+
+#define	UL_CONFIRMED		1		/* UL confirmed */
+#define	UL_UNCONFIRMED		0		/* UL unconfirmed */
+
+#define	UL_MAX_PAYLOAD		5		/* for ID/VERSION */
+
+#define	UPLINK_QUEUE_NUM	11		/* one entry is sentinel */
+
+#define	UplinkQueueNext(x)	(((x) + 1) >= UPLINK_QUEUE_NUM ? 0 : (x) + 1)
+
+typedef struct {
+	uint8_t		uplinkType;
+	/* confirmedCount: if 0, unconfirmed, otherwise max re-sends */
+	/* re-send happens when payload size is too large for fOpts/DR */
+	uint8_t		upLinkConfirmedCount;
+	/* private buffer, filled in when sent */
+	uint8_t		upLinkPayload[UL_MAX_PAYLOAD];
+	LmHandlerAppData_t appData;
+} UplinkQueue_t;
+
 
 /* USER CODE END EC */
 
