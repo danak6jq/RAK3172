@@ -1,6 +1,6 @@
 Configuration	RAK3172
 STM32CubeMX 	6.6.0
-Date	07/08/2022
+Date	07/09/2022
 MCU	STM32WLE5CCUx
 
 

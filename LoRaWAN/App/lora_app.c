@@ -428,8 +428,8 @@ void LoRaWAN_Init(void)
   /* USER CODE BEGIN LoRaWAN_Init_Last */
 	UTIL_TIMER_Create(&SwitchTimer, 0xFFFFFFFFU, UTIL_TIMER_ONESHOT,
 			OnSwitchTimerEvent, NULL);
-	// UTIL_TIMER_SetPeriod(&SwitchTimer, APP_TX_DUTYCYCLE);
-	// UTIL_TIMER_Start(&SwitchTimer);
+	UTIL_TIMER_SetPeriod(&SwitchTimer, APP_TX_DUTYCYCLE);
+	UTIL_TIMER_Start(&SwitchTimer);
 
 	/* wait until joined to start */
     UTIL_TIMER_Stop(&TxTimer);
@@ -775,6 +775,7 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
 			queueEnabled = true;
 			enqueueUplink(UL_ID_ID, false);
 			enqueueUplink(UL_ID_STATUS, false);
+			UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStoreContextEvent), CFG_SEQ_Prio_0);
 		} else {
 			APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### = JOIN FAILED\r\n");
 
