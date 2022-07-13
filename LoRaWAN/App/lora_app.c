@@ -347,13 +347,7 @@ void LoRaWAN_Init(void)
   /* USER CODE END LoRaWAN_Init_LV */
 
   /* USER CODE BEGIN LoRaWAN_Init_1 */
-
   BSP_RAK5005_Init();
-  BSP_LED_Init(LED_BLUE);
-  BSP_LED_Init(LED_GREEN);
-  // BSP_LED_Init(LED_RED);
-  // BSP_PB_Init(BUTTON_SW1, BUTTON_MODE_EXTI);
-
   /* Get LoRa APP version*/
   APP_LOG(TS_OFF, VLEVEL_M, "APPLICATION_VERSION: V%X.%X.%X\r\n",
           (uint8_t)(APP_VERSION_MAIN),
@@ -554,6 +548,7 @@ static void SendTxData(void)
   int16_t temperature = 0;
   sensor_t sensor_data;
   UTIL_TIMER_Time_t nextTxIn = 0;
+  LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
 
 #ifdef CAYENNE_LPP
   uint8_t channel = 0;
@@ -623,16 +618,31 @@ static void SendTxData(void)
   AppData.BufferSize = i;
 #endif /* CAYENNE_LPP */
 
-  APP_LOG(TS_OFF, VLEVEL_M, "Send UL Buffer: %x\r\n", AppData.Buffer);
-  if (LORAMAC_HANDLER_SUCCESS == LmHandlerSend(&AppData, LmHandlerParams.IsTxConfirmed, false))
-  {
-    APP_LOG(TS_ON, VLEVEL_L, "SEND REQUEST\r\n");
-  }
-  else if (nextTxIn > 0)
-  {
-    APP_LOG(TS_ON, VLEVEL_L, "Next Tx in  : ~%d second(s)\r\n", (nextTxIn / 1000));
-  }
+  if ((JoinLedTimer.IsRunning) && (LmHandlerJoinStatus() == LORAMAC_HANDLER_SET))
+   {
+     UTIL_TIMER_Stop(&JoinLedTimer);
+   }
 
+   status = LmHandlerSend(&AppData, LmHandlerParams.IsTxConfirmed, false);
+   if (LORAMAC_HANDLER_SUCCESS == status)
+   {
+     APP_LOG(TS_ON, VLEVEL_L, "SEND REQUEST\r\n");
+   }
+   else if (LORAMAC_HANDLER_DUTYCYCLE_RESTRICTED == status)
+   {
+     nextTxIn = LmHandlerGetDutyCycleWaitTime();
+     if (nextTxIn > 0)
+     {
+       APP_LOG(TS_ON, VLEVEL_L, "Next Tx in  : ~%d second(s)\r\n", (nextTxIn / 1000));
+     }
+   }
+
+  if (EventType == TX_ON_TIMER)
+  {
+	UTIL_TIMER_Stop(&TxTimer);
+	UTIL_TIMER_SetPeriod(&TxTimer, MAX(nextTxIn, TxPeriodicity));
+	UTIL_TIMER_Start(&TxTimer);
+  }
   /* USER CODE END SendTxData_1 */
 }
 
@@ -692,8 +702,6 @@ static void OnTxData(LmHandlerTxParams_t *params)
       {
         APP_LOG(TS_OFF, VLEVEL_H, "UNCONFIRMED\r\n");
       }
-
-      APP_LOG(TS_OFF, VLEVEL_M, "Buffer: %x\r\n", params->AppData.Buffer);
     }
   }
   /* USER CODE END OnTxData_1 */
