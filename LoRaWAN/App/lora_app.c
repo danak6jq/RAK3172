@@ -505,6 +505,7 @@ startUplink(void)
 		return;
 	}
 
+	// XXX: need to check for DutyCycle error here
 	if (LORAMAC_HANDLER_SUCCESS == LmHandlerSend(&q->appData,
 	  q->upLinkConfirmedCount ? LORAMAC_HANDLER_CONFIRMED_MSG : LORAMAC_HANDLER_UNCONFIRMED_MSG,
 	   false)) {
