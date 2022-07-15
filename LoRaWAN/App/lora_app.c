@@ -10,10 +10,9 @@
   * Copyright (c) 2022 STMicroelectronics.
   * All rights reserved.
   *
-  * This software component is licensed by ST under Ultimate Liberty license
-  * SLA0044, the "License"; You may not use this file except in compliance with
-  * the License. You may obtain a copy of the License at:
-  *                             www.st.com/SLA0044
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -38,7 +37,7 @@
 #include "flash_if.h"
 
 /* USER CODE BEGIN Includes */
-
+// XXX:
 #include "sys_debug.h"
 #include "LoRaMac.h"
 
@@ -322,14 +321,8 @@ void LoRaWAN_Init(void)
   /* USER CODE END LoRaWAN_Init_LV */
 
   /* USER CODE BEGIN LoRaWAN_Init_1 */
-	BSP_RAK5005_Init();
-	BSP_LED_Init(LED_BLUE);
-	BSP_LED_Init(LED_GREEN);
 
-	/* in case we have SWD enabled */
-	HAL_DBGMCU_EnableDBGStandbyMode();
-	HAL_DBGMCU_EnableDBGSleepMode();
-	HAL_DBGMCU_EnableDBGStopMode();
+  BSP_RAK5005_Init();
 
 
 	// BSP_PB_Init(BUTTON_SW1, BUTTON_MODE_EXTI);
@@ -352,20 +345,20 @@ void LoRaWAN_Init(void)
 		HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 	}
 
-  /* Get LoRa APP version*/
+  /* Get LoRaWAN APP version*/
   APP_LOG(TS_OFF, VLEVEL_M, "APPLICATION_VERSION: V%X.%X.%X\r\n",
           (uint8_t)(APP_VERSION_MAIN),
           (uint8_t)(APP_VERSION_SUB1),
           (uint8_t)(APP_VERSION_SUB2));
 
   /* Get MW LoRaWAN info */
-  APP_LOG(TS_OFF, VLEVEL_M, "MW_LORAWAN_VERSION: V%X.%X.%X\r\n",
+  APP_LOG(TS_OFF, VLEVEL_M, "MW_LORAWAN_VERSION:  V%X.%X.%X\r\n",
           (uint8_t)(LORAWAN_VERSION_MAIN),
           (uint8_t)(LORAWAN_VERSION_SUB1),
           (uint8_t)(LORAWAN_VERSION_SUB2));
 
   /* Get MW SubGhz_Phy info */
-  APP_LOG(TS_OFF, VLEVEL_M, "MW_RADIO_VERSION:   V%X.%X.%X\r\n",
+  APP_LOG(TS_OFF, VLEVEL_M, "MW_RADIO_VERSION:    V%X.%X.%X\r\n",
           (uint8_t)(SUBGHZ_PHY_VERSION_MAIN),
           (uint8_t)(SUBGHZ_PHY_VERSION_SUB1),
           (uint8_t)(SUBGHZ_PHY_VERSION_SUB2));
@@ -761,6 +754,7 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
 
 	if (joinParams != NULL) {
 		if (joinParams->Status == LORAMAC_HANDLER_SUCCESS) {
+		        UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStoreContextEvent), CFG_SEQ_Prio_0);
 			APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### = JOINED = ");
 			if (joinParams->Mode == ACTIVATION_TYPE_ABP) {
 				APP_LOG(TS_OFF, VLEVEL_M, "ABP ======================\r\n");
@@ -794,12 +788,42 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
 static void OnBeaconStatusChange(LmHandlerBeaconParams_t *params)
 {
   /* USER CODE BEGIN OnBeaconStatusChange_1 */
+  if (params != NULL)
+  {
+    switch (params->State)
+    {
+      default:
+      case LORAMAC_HANDLER_BEACON_LOST:
+      {
+        APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### BEACON LOST\r\n");
+        break;
+      }
+      case LORAMAC_HANDLER_BEACON_RX:
+      {
+        APP_LOG(TS_OFF, VLEVEL_M,
+                "\r\n###### BEACON RECEIVED | DR:%d | RSSI:%d | SNR:%d | FQ:%d | TIME:%d | DESC:%d | "
+                "INFO:02X%02X%02X %02X%02X%02X\r\n",
+                params->Info.Datarate, params->Info.Rssi, params->Info.Snr, params->Info.Frequency,
+                params->Info.Time.Seconds, params->Info.GwSpecific.InfoDesc,
+                params->Info.GwSpecific.Info[0], params->Info.GwSpecific.Info[1],
+                params->Info.GwSpecific.Info[2], params->Info.GwSpecific.Info[3],
+                params->Info.GwSpecific.Info[4], params->Info.GwSpecific.Info[5]);
+        break;
+      }
+      case LORAMAC_HANDLER_BEACON_NRX:
+      {
+        APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### BEACON NOT RECEIVED\r\n");
+        break;
+      }
+    }
+  }
   /* USER CODE END OnBeaconStatusChange_1 */
 }
 
 static void OnClassChange(DeviceClass_t deviceClass)
 {
   /* USER CODE BEGIN OnClassChange_1 */
+  APP_LOG(TS_OFF, VLEVEL_M, "Switch to Class %c done\r\n", "ABC"[deviceClass]);
   /* USER CODE END OnClassChange_1 */
 }
 

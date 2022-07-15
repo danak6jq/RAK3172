@@ -67,10 +67,6 @@ typedef void (* BSP_EXTI_LineCallback) (void);
 /** @defgroup STM32WLXX_NUCLEO_LOW_LEVEL_Private_Variables LOW LEVEL Private Variables
   * @{
   */
-static GPIO_TypeDef*  LED_PORT[LEDn] = {LED1_GPIO_PORT, LED2_GPIO_PORT, LED3_GPIO_PORT};
-
-static const uint16_t LED_PIN[LEDn] = {LED1_PIN, LED2_PIN, LED3_PIN};
-
 static GPIO_TypeDef* BUTTON_PORT[BUTTONn] = {BUTTON_SW1_GPIO_PORT, BUTTON_SW2_GPIO_PORT, BUTTON_SW3_GPIO_PORT};
 
 static const uint16_t BUTTON_PIN[BUTTONn] = {BUTTON_SW1_PIN, BUTTON_SW2_PIN, BUTTON_SW3_PIN};
@@ -117,155 +113,6 @@ static void COM1_MspDeInit(UART_HandleTypeDef *huart);
 uint32_t BSP_GetVersion(void)
 {
   return (int32_t)__STM32WLXX_NUCLEO_BSP_VERSION;
-}
-
-/** @addtogroup STM32WLXX_NUCLEO_LOW_LEVEL_LED_Functions
-  * @{
-  */ 
-
-/**
-  * @brief  Configures LED GPIO.
-  * @param  Led: LED to be configured. 
-  *         This parameter can be one of the following values:
-  *            @arg LED1
-  *            @arg LED2
-  *            @arg LED3
-  * @retval BSP status
-  */
-int32_t BSP_LED_Init(Led_TypeDef Led)
-{
-  GPIO_InitTypeDef  gpio_init_structure = {0};
-  
-  if (LED_PIN[Led] == GPIO_PIN_All) {
-	  // unsupported pin
-	  return BSP_ERROR_NONE;
-  }
-
-  /* Enable the GPIO_LED Clock */
-  LEDx_GPIO_CLK_ENABLE(Led);
-
-  /* Configure the GPIO_LED pin */
-  gpio_init_structure.Pin = LED_PIN[Led];
-  gpio_init_structure.Mode = GPIO_MODE_OUTPUT_PP;
-  gpio_init_structure.Pull = GPIO_NOPULL;
-  gpio_init_structure.Speed = GPIO_SPEED_FREQ_HIGH;
-  
-  HAL_GPIO_Init(LED_PORT[Led], &gpio_init_structure);
-  HAL_GPIO_WritePin(LED_PORT[Led], LED_PIN[Led], GPIO_PIN_RESET);
-
-  return BSP_ERROR_NONE;
-}
-
-/**
-  * @brief  DeInit LEDs.
-  * @param  Led: LED to be de-init. 
-  *         This parameter can be one of the following values:
-  *            @arg LED1
-  *            @arg LED2
-  *            @arg LED3
-  * @note Led DeInit does not disable the GPIO clock nor disable the Mfx 
-  * @retval BSP status
-  */
-int32_t BSP_LED_DeInit(Led_TypeDef Led)
-{
-
-  if (LED_PIN[Led] == GPIO_PIN_All) {
-	// unsupported pin
-	return BSP_ERROR_NONE;
-  }
-
-  /* Turn off LED */
-  HAL_GPIO_WritePin(LED_PORT[Led], LED_PIN[Led], GPIO_PIN_RESET);
-
-  /* DeInit the GPIO_LED pin */
-  HAL_GPIO_DeInit(LED_PORT[Led], LED_PIN[Led]);
-
-  return BSP_ERROR_NONE;
-}
-
-/**
-  * @brief  Turns selected LED On.
-  * @param  Led: Specifies the Led to be set on. 
-  *         This parameter can be one of the following values:
-  *            @arg LED1
-  *            @arg LED2
-  *            @arg LED3
-  * @retval BSP status
-  */
-int32_t BSP_LED_On(Led_TypeDef Led)
-{
-
-  if (LED_PIN[Led] == GPIO_PIN_All) {
-	// unsupported pin
-	return BSP_ERROR_NONE;
-  }
-
-  HAL_GPIO_WritePin(LED_PORT[Led], LED_PIN[Led], GPIO_PIN_SET);
-
-  return BSP_ERROR_NONE;
-}
-
-/**
-  * @brief  Turns selected LED Off.
-  * @param  Led: Specifies the Led to be set off. 
-  *         This parameter can be one of the following values:
-  *            @arg LED1
-  *            @arg LED2
-  *            @arg LED3
-  * @retval BSP status
-  */
-int32_t BSP_LED_Off(Led_TypeDef Led)
-{
-
-  if (LED_PIN[Led] == GPIO_PIN_All) {
-	// unsupported pin
-	return BSP_ERROR_NONE;
-  }
-
-  HAL_GPIO_WritePin(LED_PORT[Led], LED_PIN[Led], GPIO_PIN_RESET);
-
-  return BSP_ERROR_NONE;
-}
-
-/**
-  * @brief  Toggles the selected LED.
-  * @param  Led: Specifies the Led to be toggled. 
-  *         This parameter can be one of the following values:
-  *            @arg LED1
-  *            @arg LED2
-  *            @arg LED3
-  * @retval BSP status
-  */
-int32_t BSP_LED_Toggle(Led_TypeDef Led)
-{
-  if (LED_PIN[Led] == GPIO_PIN_All) {
-	// unsupported pin
-	return BSP_ERROR_NONE;
-  }
-
-  HAL_GPIO_TogglePin(LED_PORT[Led], LED_PIN[Led]);
-
-  return BSP_ERROR_NONE;
-}
-
-/**
-  * @brief  Get the status of the selected LED.
-  * @param  Led Specifies the Led to get its state.
-  *         This parameter can be one of following parameters:
-  *            @arg LED1
-  *            @arg LED2
-  *            @arg LED3
-  * @retval LED status
-  */
-int32_t BSP_LED_GetState(Led_TypeDef Led)
-{
-
-  if (LED_PIN[Led] == GPIO_PIN_All) {
-	// unsupported pin
-	return BSP_ERROR_NONE;
-  }
-
-  return (int32_t) (!HAL_GPIO_ReadPin(LED_PORT[Led], LED_PIN[Led]));
 }
 
 /**
@@ -403,6 +250,7 @@ BSP_ADC_ReadChannels(uint32_t channel)
   ADC_ChannelConfTypeDef sConfig = {0};
 
   /* make sure HSI is running */
+  // XXX: required?
   LL_RCC_HSI_Enable();
   while (!LL_RCC_HSI_IsReady()) {
 	  // spin
@@ -430,7 +278,6 @@ BSP_ADC_ReadChannels(uint32_t channel)
     /* Start Error */
     Error_Handler();
   }
-
   /** Wait for end of conversion */
   HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
 
@@ -468,37 +315,19 @@ BSP_ReadVrefmV()
 
 uint16_t
 BSP_RAK5005_GetBatteryLevel(void)
- {
-#if 0
+{
   uint16_t batteryLevelmV = 0;
   uint32_t measuredLevel = 0;
 
   measuredLevel = BSP_ADC_ReadChannels(ADC_CHANNEL_2);
 
-  if (measuredLevel == 0)
-  {
+  if (measuredLevel == 0) {
     batteryLevelmV = 0;
-  }
-  else
-  {
-    batteryLevelmV = (measuredLevel * 4125) / 12288;
+  } else {
+    batteryLevelmV = (measuredLevel * 25000U) / 15000U;
   }
 
   return batteryLevelmV;
-#else
-	uint16_t batteryLevelmV = 0;
-	uint32_t measuredLevel = 0;
-
-	measuredLevel = BSP_ADC_ReadChannels(ADC_CHANNEL_2);
-
-	if (measuredLevel == 0) {
-		batteryLevelmV = 0;
-	} else {
-		batteryLevelmV = (measuredLevel * BSP_ReadVrefmV() * 3) / (4095 * 2);
-	}
-
-	return batteryLevelmV;
-#endif
 }
 
 /**
@@ -749,9 +578,6 @@ BSP_RAK5005_Init(void)
 	HAL_GPIO_Init(GPIOB, &gpio_init_structure);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
 
-	/* power up the RAK5005 */
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
-
 	/* reset the relay */
 	BSP_RAK5005_Relay_Off();
 
@@ -762,12 +588,12 @@ int32_t			BSP_RAK5005_DeInit(void);
 
 int32_t			BSP_RAK5005_Relay_On(void)
 {
-	// HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
-	// HAL_Delay(100);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+	HAL_Delay(100);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET);
 	HAL_Delay(100);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
-	// HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
 
 	return BSP_ERROR_NONE;
 }
@@ -775,12 +601,12 @@ int32_t			BSP_RAK5005_Relay_On(void)
 int32_t
 BSP_RAK5005_Relay_Off(void)
 {
-	// HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
-	// HAL_Delay(100);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+	HAL_Delay(100);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
 	HAL_Delay(100);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-	// HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
 
 	return BSP_ERROR_NONE;
 }
