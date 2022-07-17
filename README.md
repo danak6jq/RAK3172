@@ -1,10 +1,8 @@
 # RAK3172
 Port of STM32WLxx example for RAK3172
 
-Quick update to V1.2 of ST firmware package; unit tested as a Class C mote
+May-Queen branch: cleanup of ST LoRaWAN_End_Node example code. Produced by generating a new project from the IOC file, resulting in a 'clean' end-node framework without the ST example code. To this empty framework, the RAK3172-specific BSP files are added-in (renamed from the ST Nucleo files in master) and minimum necessary hooks are added back to lora_app.c (improved Join behavior, lengthened JOIN timer)
 
-Update 14 July 2022:
-Reviewed merge of V1.2 ST FW and found a number of issues, mostly in the lora_app.c merge. I think I've fixed battery level reporting. Cleaned-up LED control code (though LEDs don't have a clear functionality, this could use some more app-specific attention). Added implementation of v1.0.4. Moved GPIO initialization to match ST LoRa_End_Node example. Unit-tested in Class C and Class A. Changed some defaults in the IOC file (use ST-provided EUI, v1.0.4, Class A, debugger disabled).
-I'm happy to merge PRs with different defaults when there's enough user request.
+This branch will eventually merge back to master.
 
 As usual, this is provided with zero warranty for usefulness or reliability. 
