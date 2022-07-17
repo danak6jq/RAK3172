@@ -1,6 +1,8 @@
 # RAK3172
 Port of STM32WLxx example for RAK3172
 
+16 July 2022: HEADS UP - may-queen branch will be a 'clean' / sparsely-filled LoRaWAN End Node project without most of the example code for Nucleo buttons. The BSP will be renamed, too. After some testing, this will merge into master.
+
 Quick update to V1.2 of ST firmware package; unit tested as a Class C mote
 
 Update 14 July 2022:
