@@ -1,7 +1,7 @@
 # RAK3172
 Port of STM32WLxx example for RAK3172
 
-16 July 2022: HEADS UP - may-queen branch will be a 'clean' / sparsely-filled LoRaWAN End Node project without most of the example code for Nucleo buttons. The BSP will be renamed, too. After some testing, this will merge into master.
+UPDATE 9 May 2023: the FW1.3 branch is the result of letting STM32CubeIDE update to FW V1.3. It hasn't been tested yet but initial review suggests it'll work fine. If you test this before I do, please let me know I'll merge it to master.
 
 Quick update to V1.2 of ST firmware package; unit tested as a Class C mote
 
