@@ -66,6 +66,7 @@ void Error_Handler(void);
 #define LED2_GPIO_Port GPIOA
 #define FREQ_HIGH_Pin GPIO_PIN_12
 #define FREQ_HIGH_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
