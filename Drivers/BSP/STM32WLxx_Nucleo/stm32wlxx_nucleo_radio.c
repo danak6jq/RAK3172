@@ -49,14 +49,6 @@ int32_t BSP_RADIO_Init(void)
 {
   GPIO_InitTypeDef  gpio_init_structure = {0};
   
-  /*
-   * XXX: does not appear to be a way to over-ride XTAL_DEFAULT_CAP_VALUE
-   * This function is called shortly after setting this to the wrong value,
-   * so correct it here
-   */
-  SUBGRF_WriteRegister( REG_XTA_TRIM, 0x10 );
-  SUBGRF_WriteRegister( REG_XTB_TRIM, 0x10 );
-
   RF_SW_CTRL1_GPIO_CLK_ENABLE();
   RF_SW_CTRL2_GPIO_CLK_ENABLE();
 
@@ -126,7 +118,7 @@ int32_t BSP_RADIO_ConfigRFSwitch(BSP_RADIO_Switch_TypeDef Config)
     case RADIO_SWITCH_RFO_LP:
     {
       /*Turns On in Tx Low Power the RF Switch */
-      HAL_GPIO_WritePin(RF_SW_CTRL1_GPIO_PORT, RF_SW_CTRL1_PIN, GPIO_PIN_SET); 
+      HAL_GPIO_WritePin(RF_SW_CTRL1_GPIO_PORT, RF_SW_CTRL1_PIN, GPIO_PIN_RESET);
       HAL_GPIO_WritePin(RF_SW_CTRL2_GPIO_PORT, RF_SW_CTRL2_PIN, GPIO_PIN_SET); 
       break;
     }
@@ -165,7 +157,7 @@ int32_t BSP_RADIO_GetTxConfig(void)
   */
 int32_t BSP_RADIO_IsTCXO(void)
 {
-  return RADIO_CONF_TCXO_NOT_SUPPORTED;
+  return RADIO_CONF_TCXO_SUPPORTED;
 }
 
 /**

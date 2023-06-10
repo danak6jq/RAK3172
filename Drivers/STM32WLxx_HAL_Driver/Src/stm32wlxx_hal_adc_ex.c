@@ -168,9 +168,9 @@ HAL_StatusTypeDef HAL_ADCEx_Calibration_Start(ADC_HandleTypeDef *hadc)
     LL_ADC_Enable(hadc->Instance);
 
     /* add this block of code */
-    while (!LL_ADC_IsActiveFlag_ADRDY(hadc->Instance))  // XXX:
-        /* spin */;                                     // XXX:
-    LL_ADC_ClearFlag_ADRDY(hadc->Instance);             // XXX:
+    while (!LL_ADC_IsActiveFlag_ADRDY(hadc->Instance))  // ***
+    	/* spin */;                                        // ***
+    LL_ADC_ClearFlag_ADRDY(hadc->Instance);             // ***
 
     LL_ADC_SetCalibrationFactor(hadc->Instance, calibration_factor_accumulated);
     LL_ADC_Disable(hadc->Instance);

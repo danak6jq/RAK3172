@@ -1,16 +1,19 @@
 Configuration	RAK3172
 STM32CubeMX 	6.8.1
-Date	05/09/2023
+Date	06/10/2023
 MCU	STM32WLE5CCUx
 
 
 
 PERIPHERALS	MODES	FUNCTIONS	PINS
 ADC	IN2	ADC_IN2	PB3
+ADC	IN3	ADC_IN3	PB4
 ADC	Single-ended	ADC_TempSens_Input	VP_ADC_TempSens_Input
 ADC	Vrefint Channel	ADC_Vref_Input	VP_ADC_Vref_Input
-RCC	Crystal/Ceramic Resonator	RCC_OSC_IN	OSC_IN
-RCC	Crystal/Ceramic Resonator	RCC_OSC_OUT	OSC_OUT
+LPUART1	Asynchronous	LPUART1_RX	PA3
+LPUART1	Asynchronous	LPUART1_TX	PA2
+RCC	TCXO	RCC_OSC_IN	OSC_IN
+RCC	TCXO	VDDTCXO	PB0-VDD_TCXO
 RCC	Crystal/Ceramic Resonator	RCC_OSC32_IN	PC14-OSC32_IN
 RCC	Crystal/Ceramic Resonator	RCC_OSC32_OUT	PC15-OSC32_OUT
 RTC	Activate RTC Clock Source	RTC_VS_RTC_Activate	VP_RTC_VS_RTC_Activate
@@ -18,28 +21,28 @@ RTC	RTC Enabled	RTC_VS_RTC_Calendar	VP_RTC_VS_RTC_Calendar
 RTC	Internal Alarm A	RTC_VS_RTC_Alarm_A_Intern	VP_RTC_VS_RTC_Alarm_A_Intern
 SUBGHZ	Activated	SUBGHZ_VS_SUBGHZ	VP_SUBGHZ_VS_SUBGHZ
 SYS	None	SYS_VS_None	VP_SYS_VS_None
-USART2	Asynchronous	USART2_RX	PA3
-USART2	Asynchronous	USART2_TX	PA2
 
 
 
 Pin Nb	PINs	FUNCTIONs	LABELs
 1	PB3	ADC_IN2	
-7	PA0	GPIO_Output	LED1
-8	PA1	GPIO_Output	LED2
-9	PA2	USART2_TX	
-10	PA3	USART2_RX	
+2	PB4	ADC_IN3	
+9	PA2	LPUART1_TX	
+10	PA3	LPUART1_RX	
 26	OSC_IN	RCC_OSC_IN	
-27	OSC_OUT	RCC_OSC_OUT	
+30	PB0-VDD_TCXO	VDDTCXO	
 32	PB12	GPIO_Input	FREQ_HIGH
 39	PC14-OSC32_IN	RCC_OSC32_IN	
 40	PC15-OSC32_OUT	RCC_OSC32_OUT	
 PERIPHERALS	MODES	FUNCTIONS	PINS
 ADC	IN2	ADC_IN2	PB3
+ADC	IN3	ADC_IN3	PB4
 ADC	Single-ended	ADC_TempSens_Input	VP_ADC_TempSens_Input
 ADC	Vrefint Channel	ADC_Vref_Input	VP_ADC_Vref_Input
-RCC	Crystal/Ceramic Resonator	RCC_OSC_IN	OSC_IN
-RCC	Crystal/Ceramic Resonator	RCC_OSC_OUT	OSC_OUT
+LPUART1	Asynchronous	LPUART1_RX	PA3
+LPUART1	Asynchronous	LPUART1_TX	PA2
+RCC	TCXO	RCC_OSC_IN	OSC_IN
+RCC	TCXO	VDDTCXO	PB0-VDD_TCXO
 RCC	Crystal/Ceramic Resonator	RCC_OSC32_IN	PC14-OSC32_IN
 RCC	Crystal/Ceramic Resonator	RCC_OSC32_OUT	PC15-OSC32_OUT
 RTC	Activate RTC Clock Source	RTC_VS_RTC_Activate	VP_RTC_VS_RTC_Activate
@@ -47,19 +50,16 @@ RTC	RTC Enabled	RTC_VS_RTC_Calendar	VP_RTC_VS_RTC_Calendar
 RTC	Internal Alarm A	RTC_VS_RTC_Alarm_A_Intern	VP_RTC_VS_RTC_Alarm_A_Intern
 SUBGHZ	Activated	SUBGHZ_VS_SUBGHZ	VP_SUBGHZ_VS_SUBGHZ
 SYS	None	SYS_VS_None	VP_SYS_VS_None
-USART2	Asynchronous	USART2_RX	PA3
-USART2	Asynchronous	USART2_TX	PA2
 
 
 
 Pin Nb	PINs	FUNCTIONs	LABELs
 1	PB3	ADC_IN2	
-7	PA0	GPIO_Output	LED1
-8	PA1	GPIO_Output	LED2
-9	PA2	USART2_TX	
-10	PA3	USART2_RX	
+2	PB4	ADC_IN3	
+9	PA2	LPUART1_TX	
+10	PA3	LPUART1_RX	
 26	OSC_IN	RCC_OSC_IN	
-27	OSC_OUT	RCC_OSC_OUT	
+30	PB0-VDD_TCXO	VDDTCXO	
 32	PB12	GPIO_Input	FREQ_HIGH
 39	PC14-OSC32_IN	RCC_OSC32_IN	
 40	PC15-OSC32_OUT	RCC_OSC32_OUT	
@@ -70,7 +70,7 @@ SOFTWARE PROJECT
 
 Project Settings : 
 Project Name : RAK3172
-Project Folder : /home/dana/STM32CubeIDE/workspace_1.12.1/RAK3172
+Project Folder : C:\Users\danam\STM32CubeIDE\workspace_1.7.0\RAK3172
 Toolchain / IDE : STM32CubeIDE
 Firmware Package Name and Version : STM32Cube FW_WL V1.3.0
 
@@ -80,7 +80,7 @@ STM32Cube MCU packages and embedded software packs : Copy only the necessary lib
 Generate peripheral initialization as a pair of '.c/.h' files per peripheral : Yes
 Backup previously generated files when re-generating : Yes
 Delete previously generated files when not re-generated : Yes
-Set all free pins as analog (to optimize the power consumption) : No
+Set all free pins as analog (to optimize the power consumption) : Yes
 
 
 Toolchains Settings : 

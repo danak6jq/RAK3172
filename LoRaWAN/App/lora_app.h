@@ -51,7 +51,7 @@ extern "C" {
 /*!
  * Defines the application data transmission duty cycle. 10s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            900000
+#define APP_TX_DUTYCYCLE                            30000
 
 /*!
  * LoRaWAN User application port
