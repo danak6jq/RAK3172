@@ -1,7 +1,15 @@
 # RAK3172
 Port of STM32WLxx example for RAK3172
 
-16 July 2022: HEADS UP - may-queen branch will be a 'clean' / sparsely-filled LoRaWAN End Node project without most of the example code for Nucleo buttons. The BSP will be renamed, too. After some testing, this will merge into master.
+Initial port of ST example code for RAK3172 to RAK3172-SiP. Performed a bit of cleaning-up of left-over code in the example - it's still not entirely cleaned-up but the LoRaWAN function is complete. Differences between RAK3172 and RAK3172-SiP:
+- RAK3172-SiP uses PA0/PA1 for RF switch internally.
+- RAK3172-SiP contain a TCXO rather than xtal of RAK3172. This implicitly uses PB0 to switch TCXO power.
+
+I found I needed to configure the ADC specifically as in another application to see minimum STOP2 current; it's possible I'm mistreating the ADC otherwise.
+
+With this project I'm seeing under 2uA STOP2 current (typically around 1.3uA) though I wonder how that's influenced by decoupling capacitors on the RAK3172-SiP breakout board. More than once I've briefly disconnected the external 3.3V supply to the breakout board during sleep without interrupting MCU operation :).
+
+My test hardware uses a Microchip MCP1702 three-pin 3v3 LDO with 1u decoupling caps.
 
 Quick update to V1.2 of ST firmware package; unit tested as a Class C mote
 
