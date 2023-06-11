@@ -4,6 +4,7 @@ Port of STM32WLxx example for RAK3172
 Initial port of ST example code for RAK3172 to RAK3172-SiP. Performed a bit of cleaning-up of left-over code in the example - it's still not entirely cleaned-up but the LoRaWAN function is complete. Differences between RAK3172 and RAK3172-SiP:
 - RAK3172-SiP uses PA0/PA1 for RF switch internally.
 - RAK3172-SiP contain a TCXO rather than xtal of RAK3172. This implicitly uses PB0 to switch TCXO power.
+- Eliminate configuration of PB12 to read high/low frequency; not used in SiP.
 
 I found I needed to configure the ADC specifically as in another application to see minimum STOP2 current; it's possible I'm mistreating the ADC otherwise.
 
