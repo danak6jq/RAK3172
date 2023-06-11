@@ -12,7 +12,7 @@ With this project I'm seeing under 2uA STOP2 current (typically around 1.3uA) th
 
 My test hardware uses a Microchip MCP1702 three-pin 3v3 LDO with 1u decoupling caps.
 
-Quick update to V1.2 of ST firmware package; unit tested as a Class C mote
+Quick update to V1.2 of ST firmware package; unit tested as a Class A and C mote
 
 Update 14 July 2022:
 Reviewed merge of V1.2 ST FW and found a number of issues, mostly in the lora_app.c merge. I think I've fixed battery level reporting. Cleaned-up LED control code (though LEDs don't have a clear functionality, this could use some more app-specific attention). Added implementation of v1.0.4. Moved GPIO initialization to match ST LoRa_End_Node example. Unit-tested in Class C and Class A. Changed some defaults in the IOC file (use ST-provided EUI, v1.0.4, Class A, debugger disabled).
