@@ -525,36 +525,6 @@ BSP_RAK5005_Init(void)
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 
-#if 0
-	/* Configure the GPIO pins */
-	gpio_init_structure.Pin = GPIO_PIN_8;
-	gpio_init_structure.Mode = GPIO_MODE_OUTPUT_PP;
-	gpio_init_structure.Pull = GPIO_NOPULL;
-	gpio_init_structure.Speed = GPIO_SPEED_FREQ_HIGH;
-
-	HAL_GPIO_Init(GPIOA, &gpio_init_structure);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
-
-	gpio_init_structure.Pin = GPIO_PIN_11;
-
-	HAL_GPIO_Init(GPIOA, &gpio_init_structure);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_RESET);
-
-	gpio_init_structure.Pin = GPIO_PIN_2;
-	HAL_GPIO_Init(GPIOB, &gpio_init_structure);
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
-
-	// gpio_init_structure.Pin = GPIO_PIN_12;
-	// HAL_GPIO_Init(GPIOB, &gpio_init_structure);
-	// HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-#endif
-
-	gpio_init_structure.Pin = GPIO_PIN_12;
-	gpio_init_structure.Mode = GPIO_MODE_INPUT;
-	gpio_init_structure.Pull = GPIO_NOPULL;
-	gpio_init_structure.Speed = GPIO_SPEED_FREQ_HIGH;
-	HAL_GPIO_Init(GPIOB, &gpio_init_structure);
-
 	return BSP_ERROR_NONE;
 }
 
