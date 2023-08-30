@@ -539,50 +539,10 @@ BSP_RAK5005_Init(void)
 	HAL_GPIO_Init(GPIOA, &gpio_init_structure);
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_RESET);
 
-	gpio_init_structure.Pin = GPIO_PIN_2;
-
-	HAL_GPIO_Init(GPIOB, &gpio_init_structure);
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
-
-	gpio_init_structure.Pin = GPIO_PIN_12;
-
-	HAL_GPIO_Init(GPIOB, &gpio_init_structure);
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-
-	/* reset the relay */
-	BSP_RAK5005_Relay_Off();
-
 	return BSP_ERROR_NONE;
 }
 
 int32_t			BSP_RAK5005_DeInit(void);
-
-int32_t			BSP_RAK5005_Relay_On(void)
-{
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
-	HAL_Delay(100);
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET);
-	HAL_Delay(100);
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
-
-	return BSP_ERROR_NONE;
-}
-
-int32_t
-BSP_RAK5005_Relay_Off(void)
-{
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
-	HAL_Delay(100);
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-	HAL_Delay(100);
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
-
-	return BSP_ERROR_NONE;
-}
-
-int32_t			BSP_RAK5005_Opto_GetState(void);
 
 /**
   * @}
