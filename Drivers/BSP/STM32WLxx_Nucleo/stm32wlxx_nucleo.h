@@ -299,9 +299,6 @@ uint16_t		BSP_RAK5005_GetBatteryLevel(void);
 
 int32_t			BSP_RAK5005_Init(void);
 int32_t			BSP_RAK5005_DeInit(void);
-int32_t			BSP_RAK5005_Relay_On(void);
-int32_t			BSP_RAK5005_Relay_Off(void);
-int32_t			BSP_RAK5005_Opto_GetState(void);
 
 /**
   * @}
