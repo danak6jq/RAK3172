@@ -72,7 +72,7 @@
  */
 static RegionNvmDataGroup1_t* RegionNvmGroup1;
 static RegionNvmDataGroup2_t* RegionNvmGroup2;
-#if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#if (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
 static Band_t* RegionBands;
 #endif /* REGION_VERSION */
 
@@ -191,13 +191,11 @@ PhyParam_t RegionUS915GetPhyParam( GetPhyParams_t* getPhy )
             phyParam.Value = MaxPayloadOfDatarateUS915[getPhy->Datarate];
             break;
         }
-        /* ST_WORKAROUND_BEGIN: Keep repeater feature */
         case PHY_MAX_PAYLOAD_REPEATER:
         {
             phyParam.Value = MaxPayloadOfDatarateRepeaterUS915[getPhy->Datarate];
             break;
         }
-        /* ST_WORKAROUND_END */
         case PHY_DUTY_CYCLE:
         {
             phyParam.Value = US915_DUTY_CYCLE_ENABLED;
@@ -239,7 +237,7 @@ PhyParam_t RegionUS915GetPhyParam( GetPhyParams_t* getPhy )
             phyParam.Value = ( REGION_COMMON_DEFAULT_ACK_TIMEOUT + randr( -REGION_COMMON_DEFAULT_ACK_TIMEOUT_RND, REGION_COMMON_DEFAULT_ACK_TIMEOUT_RND ) );
             break;
         }
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
         case PHY_RETRANSMIT_TIMEOUT:
         {
             phyParam.Value = ( REGION_COMMON_DEFAULT_RETRANSMIT_TIMEOUT + randr( -REGION_COMMON_DEFAULT_RETRANSMIT_TIMEOUT_RND, REGION_COMMON_DEFAULT_RETRANSMIT_TIMEOUT_RND ) );
@@ -367,10 +365,10 @@ void RegionUS915SetBandTxDone( SetBandTxDoneParams_t* txDone )
 #if defined( REGION_US915 )
 #if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x01010003 ))
     RegionCommonSetBandTxDone( &RegionNvmGroup1->Bands[RegionNvmGroup2->Channels[txDone->Channel].Band],
-                               txDone->LastTxAirTime, txDone->Joined, txDone->ElapsedTimeSinceStartUp );
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+                               txDone->LastTxAirTime, txDone->Joined, txDone->ElapsedTimeSinceTxBackoffRefTime );
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
     RegionCommonSetBandTxDone( &RegionBands[RegionNvmGroup2->Channels[txDone->Channel].Band],
-                               txDone->LastTxAirTime, txDone->Joined, txDone->ElapsedTimeSinceStartUp );
+                               txDone->LastTxAirTime, txDone->Joined, txDone->ElapsedTimeSinceTxBackoffRefTime );
 #endif /* REGION_VERSION */
 #endif /* REGION_US915 */
 }
@@ -404,7 +402,7 @@ void RegionUS915InitDefaults( InitDefaultsParams_t* params )
 
             // Default bands
             memcpy1( ( uint8_t* )RegionNvmGroup1->Bands, ( uint8_t* )bands, sizeof( Band_t ) * US915_MAX_NB_BANDS );
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
             RegionBands = (Band_t*) params->Bands;
 
             // Initialize 8 bit channel groups index
@@ -434,7 +432,6 @@ void RegionUS915InitDefaults( InitDefaultsParams_t* params )
             }
 
             // Default ChannelsMask
-            /* ST_WORKAROUND_BEGIN: Hybrid mode */
 #if ( HYBRID_ENABLED == 1 )
             RegionNvmGroup2->ChannelsDefaultMask[0] = HYBRID_DEFAULT_MASK0;
             RegionNvmGroup2->ChannelsDefaultMask[1] = HYBRID_DEFAULT_MASK1;
@@ -450,7 +447,6 @@ void RegionUS915InitDefaults( InitDefaultsParams_t* params )
             RegionNvmGroup2->ChannelsDefaultMask[4] = 0x00FF;
             RegionNvmGroup2->ChannelsDefaultMask[5] = 0x0000;
 #endif /* HYBRID_ENABLED == 1 */
-            /* ST_WORKAROUND_END */
 
             // Copy channels default mask
             RegionCommonChanMaskCopy( RegionNvmGroup2->ChannelsMask, RegionNvmGroup2->ChannelsDefaultMask, CHANNELS_MASK_SIZE );
@@ -470,7 +466,7 @@ void RegionUS915InitDefaults( InitDefaultsParams_t* params )
 
 #if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x01010003 ))
             for( uint8_t i = 0; i < CHANNELS_MASK_SIZE; i++ )
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
             for( uint8_t i = 0; i < 6; i++ )
 #endif /* REGION_VERSION */
             { // Copy-And the channels mask
@@ -501,7 +497,7 @@ bool RegionUS915Verify( VerifyParams_t* verify, PhyAttribute_t phyAttribute )
         {
             return RegionCommonValueInRange( verify->DatarateParams.Datarate, US915_TX_MIN_DATARATE, US915_TX_MAX_DATARATE );
         }
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
         case PHY_TX_DR:
         {
             return RegionCommonValueInRange( verify->DatarateParams.Datarate, US915_TX_MIN_DATARATE, US915_TX_MAX_DATARATE );
@@ -646,7 +642,6 @@ bool RegionUS915RxConfig( RxConfigParams_t* rxConfig, int8_t* datarate )
     // Radio configuration
     Radio.SetRxConfig( MODEM_LORA, rxConfig->Bandwidth, phyDr, 1, 0, 8, rxConfig->WindowTimeout, false, 0, false, 0, 0, true, rxConfig->RxContinuous );
 
-    /* ST_WORKAROUND_BEGIN: Keep repeater feature */
     if( rxConfig->RepeaterSupport == true )
     {
         maxPayload = MaxPayloadOfDatarateRepeaterUS915[dr];
@@ -657,11 +652,8 @@ bool RegionUS915RxConfig( RxConfigParams_t* rxConfig, int8_t* datarate )
     }
 
     Radio.SetMaxPayloadLength( MODEM_LORA, maxPayload + LORAMAC_FRAME_PAYLOAD_OVERHEAD_SIZE );
-    /* ST_WORKAROUND_END */
 
-    /* ST_WORKAROUND_BEGIN: Print Rx config */
     RegionCommonRxConfigPrint(rxConfig->RxSlot, frequency, dr);
-    /* ST_WORKAROUND_END */
 
     *datarate = (uint8_t) dr;
     return true;
@@ -676,7 +668,7 @@ bool RegionUS915TxConfig( TxConfigParams_t* txConfig, int8_t* txPower, TimerTime
     int8_t phyDr = DataratesUS915[txConfig->Datarate];
 #if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x01010003 ))
     int8_t txPowerLimited = LimitTxPower( txConfig->TxPower, RegionNvmGroup1->Bands[RegionNvmGroup2->Channels[txConfig->Channel].Band].TxMaxPower, txConfig->Datarate, RegionNvmGroup2->ChannelsMask );
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
     int8_t txPowerLimited = LimitTxPower( txConfig->TxPower, RegionBands[RegionNvmGroup2->Channels[txConfig->Channel].Band].TxMaxPower, txConfig->Datarate, RegionNvmGroup2->ChannelsMask );
 #endif /* REGION_VERSION */
 
@@ -690,9 +682,7 @@ bool RegionUS915TxConfig( TxConfigParams_t* txConfig, int8_t* txPower, TimerTime
     Radio.SetChannel( RegionNvmGroup2->Channels[txConfig->Channel].Frequency );
 
     Radio.SetTxConfig( MODEM_LORA, phyTxPower, 0, bandwidth, phyDr, 1, 8, false, true, 0, 0, false, 4000 );
-    /* ST_WORKAROUND_BEGIN: Print Tx config */
     RegionCommonTxConfigPrint(RegionNvmGroup2->Channels[txConfig->Channel].Frequency, txConfig->Datarate);
-    /* ST_WORKAROUND_END */
 
     // Setup maximum payload length of the radio driver
     Radio.SetMaxPayloadLength( MODEM_LORA, txConfig->PktLen );
@@ -716,7 +706,7 @@ uint8_t RegionUS915LinkAdrReq( LinkAdrReqParams_t* linkAdrReq, int8_t* drOut, in
     uint8_t bytesProcessed = 0;
 #if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x01010003 ))
     uint16_t channelsMask[CHANNELS_MASK_SIZE] = { 0, 0, 0, 0, 0, 0 };
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
     uint16_t channelsMask[6] = { 0, 0, 0, 0, 0, 0 };
 #endif /* REGION_VERSION */
     GetPhyParams_t getPhy;
@@ -986,7 +976,7 @@ LoRaMacStatus_t RegionUS915NextChannel( NextChanParams_t* nextChanParams, uint8_
     countChannelsParams.Channels = RegionNvmGroup2->Channels;
 #if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x01010003 ))
     countChannelsParams.Bands = RegionNvmGroup1->Bands;
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
     countChannelsParams.Bands = RegionBands;
 #endif /* REGION_VERSION */
     countChannelsParams.MaxNbChannels = US915_MAX_NB_CHANNELS;
@@ -1003,10 +993,10 @@ LoRaMacStatus_t RegionUS915NextChannel( NextChanParams_t* nextChanParams, uint8_
     identifyChannelsParam.ExpectedTimeOnAir = GetTimeOnAir( nextChanParams->Datarate, nextChanParams->PktLen );
 
     identifyChannelsParam.CountNbOfEnabledChannelsParam = &countChannelsParams;
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
     identifyChannelsParam.CountNbOfEnabledChannelsParam = &countChannelsParams;
 
-    identifyChannelsParam.ElapsedTimeSinceStartUp = nextChanParams->ElapsedTimeSinceStartUp;
+    identifyChannelsParam.ElapsedTimeSinceTxBackoffRefTime = nextChanParams->ElapsedTimeSinceTxBackoffRefTime;
     identifyChannelsParam.LastTxIsJoinRequest = nextChanParams->LastTxIsJoinRequest;
     identifyChannelsParam.ExpectedTimeOnAir = GetTimeOnAir( nextChanParams->Datarate, nextChanParams->PktLen );
 #endif /* REGION_VERSION */

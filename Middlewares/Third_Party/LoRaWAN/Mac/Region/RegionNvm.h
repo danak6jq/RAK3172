@@ -42,7 +42,7 @@ extern "C"
 #include "LoRaMacTypes.h"
 #include "RegionVersion.h"
 
-#if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#if (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
 /*!
  * Channel plan for region CN470
  */
@@ -122,7 +122,7 @@ typedef struct sRegionNvmDataGroup2
      * LoRaMac channels default mask
      */
     uint16_t ChannelsDefaultMask[ REGION_NVM_CHANNELS_MASK_SIZE ];
-#if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#if (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
 #if defined( REGION_CN470 )
     /*!
      * Holds the channel plan.
@@ -138,8 +138,20 @@ typedef struct sRegionNvmDataGroup2
      * to true, if its an OTAA device.
      */
     bool IsOtaaDevice;
-#endif
+#endif /* REGION_CN470 */
 #endif /* REGION_VERSION */
+#if defined( REGION_KR920 ) || defined( REGION_AS923 )
+    /*!
+    * RSSI threshold for a free channel [dBm]
+    */
+    int16_t RssiFreeThreshold;
+
+    /*!
+    * Specifies the time the node performs a carrier sense
+    */
+    uint32_t CarrierSenseTime;
+#endif /* REGION_KR920 || REGION_AS923 */
+
     /*!
      * CRC32 value of the Region data structure.
      */

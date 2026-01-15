@@ -73,10 +73,37 @@ extern "C"
 #define CHANNEL_PLAN_GROUP_AS923_3                  3
 
 /*!
+ * Channel plan group AS923-4
+ * AS923_FREQ_OFFSET = -5.90MHz
+ */
+#define CHANNEL_PLAN_GROUP_AS923_4                  4
+
+#if (defined( REGION_VERSION ) && (( REGION_VERSION == 0x01010003 ) || ( REGION_VERSION == 0x02010001 )))
+/*!
  * Channel plan group AS923-1 for Japan
  * AS923_FREQ_OFFSET = 0
  */
-#define CHANNEL_PLAN_GROUP_AS923_1_JP               4
+#define CHANNEL_PLAN_GROUP_AS923_1_JP               5
+
+#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010003 ))
+/*!
+ * Channel plan group AS923-1 for Japan - channels 24 to 38 Listen Before Talk
+ * AS923_FREQ_OFFSET = 0
+ */
+#define CHANNEL_PLAN_GROUP_AS923_1_JP_CH24_CH38_LBT 5
+
+/*!
+ * Channel plan group AS923-1 for Japan - channels 24 to 38 Duty Cycle
+ * AS923_FREQ_OFFSET = 0
+ */
+#define CHANNEL_PLAN_GROUP_AS923_1_JP_CH24_CH38_DC  6
+
+/*!
+ * Channel plan group AS923-1 for Japan - channels 33 to 61 Listen Before Talk + Duty Cycle
+ * AS923_FREQ_OFFSET = 0
+ */
+#define CHANNEL_PLAN_GROUP_AS923_1_JP_CH33_CH61_LBT_DC 7
+#endif
 
 /*!
  * LoRaMac maximum number of channels
@@ -159,7 +186,7 @@ extern "C"
  */
 #if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x01010003 ))
 #define AS923_DEFAULT_DOWNLINK_DWELL_TIME           1
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
 #define AS923_DEFAULT_DOWNLINK_DWELL_TIME           REGION_COMMON_DEFAULT_DOWNLINK_DWELL_TIME
 #endif /* REGION_VERSION */
 
@@ -220,7 +247,7 @@ extern "C"
  */
 #if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x01010003 ))
 #define AS923_RFU1_SIZE                             2
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
 #define AS923_RFU1_SIZE                             1
 #endif /* REGION_VERSION */
 
@@ -273,16 +300,6 @@ extern "C"
 #define AS923_JOIN_CHANNELS                         ( uint16_t )( LC( 1 ) | LC( 2 ) )
 
 /*!
- * RSSI threshold for a free channel [dBm]
- */
-#define AS923_RSSI_FREE_TH                          -80
-
-/*!
- * Specifies the time the node performs a carrier sense
- */
-#define AS923_CARRIER_SENSE_TIME                    5
-
-/*!
  * Data rates table definition
  */
 static const uint8_t DataratesAS923[]  = { 12, 11, 10,  9,  8,  7, 7, 50 };
@@ -292,14 +309,13 @@ static const uint8_t DataratesAS923[]  = { 12, 11, 10,  9,  8,  7, 7, 50 };
  */
 static const uint32_t BandwidthsAS923[] = { 125000, 125000, 125000, 125000, 125000, 125000, 250000, 0 };
 
-/* ST_WORKAROUND_BEGIN: Keep repeater feature */
 /*!
  * Maximum payload with respect to the datarate index. Cannot operate with repeater.
  * The table is valid for the dwell time configuration of 0 for uplinks and downlinks.
  */
 #if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x01010003 ))
 static const uint8_t MaxPayloadOfDatarateDwell0AS923[] = { 51, 51, 51, 115, 242, 242, 242, 242 };
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
 static const uint8_t MaxPayloadOfDatarateDwell0AS923[] = { 51, 51, 115, 115, 242, 242, 242, 242 };
 #endif /* REGION_VERSION */
 
@@ -309,10 +325,9 @@ static const uint8_t MaxPayloadOfDatarateDwell0AS923[] = { 51, 51, 115, 115, 242
  */
 #if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x01010003 ))
 static const uint8_t MaxPayloadOfDatarateRepeaterDwell0AS923[] = { 51, 51, 51, 115, 222, 222, 222, 222 };
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
 static const uint8_t MaxPayloadOfDatarateRepeaterDwell0AS923[] = { 51, 51, 115, 115, 222, 222, 222, 222 };
 #endif /* REGION_VERSION */
-/* ST_WORKAROUND_END */
 
 /*!
  * Maximum payload with respect to the datarate index.
@@ -325,7 +340,7 @@ static const uint8_t MaxPayloadOfDatarateDwell1AS923[] = { 0, 0, 11, 53, 125, 24
  * Effective datarate offsets for receive window 1.
  */
 static const int8_t EffectiveRx1DrOffsetAS923[] = { 0, 1, 2, 3, 4, 5, -1, -2 };
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
 /*!
  * Effective datarate offsets for receive window 1 when downlink dwell time is zero.
  */

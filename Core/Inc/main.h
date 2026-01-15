@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2021 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -60,12 +60,7 @@ void Error_Handler(void);
 #define RTC_PREDIV_A ((1<<(15-RTC_N_PREDIV_S))-1)
 #define RTC_N_PREDIV_S 10
 #define RTC_PREDIV_S ((1<<RTC_N_PREDIV_S)-1)
-#define LED1_Pin GPIO_PIN_0
-#define LED1_GPIO_Port GPIOA
-#define LED2_Pin GPIO_PIN_1
-#define LED2_GPIO_Port GPIOA
-#define FREQ_HIGH_Pin GPIO_PIN_12
-#define FREQ_HIGH_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

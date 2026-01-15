@@ -19,8 +19,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32wlxx_nucleo_radio.h"
-
+#include <rak3172_radio.h>
 #include "radio_driver.h"
 
 /** @addtogroup BSP
@@ -53,9 +52,10 @@ int32_t BSP_RADIO_Init(void)
    * XXX: does not appear to be a way to over-ride XTAL_DEFAULT_CAP_VALUE
    * This function is called shortly after setting this to the wrong value,
    * so correct it here
+
    */
-  SUBGRF_WriteRegister( REG_XTA_TRIM, 0x10 );
-  SUBGRF_WriteRegister( REG_XTB_TRIM, 0x10 );
+  SUBGRF_WriteRegister( REG_XTA_TRIM, 0x14 );
+  SUBGRF_WriteRegister( REG_XTB_TRIM, 0x14 );
 
   RF_SW_CTRL1_GPIO_CLK_ENABLE();
   RF_SW_CTRL2_GPIO_CLK_ENABLE();

@@ -105,7 +105,7 @@ extern "C"
  * In milliseconds.
  */
 #define REGION_COMMON_DEFAULT_ACK_TIMEOUT_RND           1000
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
 /*!
  * Retransmission timeout for ACK in milliseconds.
  */
@@ -307,7 +307,7 @@ typedef struct sRegionCommonIdentifyChannelsParam
     /*!
      * Elapsed time since the start of the node.
      */
-    SysTime_t ElapsedTimeSinceStartUp;
+    SysTime_t ElapsedTimeSinceTxBackoffRefTime;
     /*!
      * Joined Set to true, if the last uplink was a join request
      */
@@ -627,7 +627,6 @@ int8_t RegionCommonLimitTxPower( int8_t txPower, int8_t maxBandTxPower );
  */
 uint32_t RegionCommonGetBandwidth( uint32_t drIndex, const uint32_t* bandwidths );
 
-/* ST_WORKAROUND_BEGIN: Print Tx/Rx config */
 /*!
  * \brief Print the current RX configuration
  *
@@ -651,7 +650,6 @@ void RegionCommonRxConfigPrint(LoRaMacRxSlot_t rxSlot,
  *
  */
 void RegionCommonTxConfigPrint(uint32_t frequency, int8_t dr);
-/* ST_WORKAROUND_END */
 /*! \} defgroup REGIONCOMMON */
 
 #ifdef __cplusplus

@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -46,7 +46,7 @@ extern "C" {
  */
 typedef struct
 {
-  uint32_t ActivationMode;  /*!< 1: ABP, 2 : OTAA, 3: ABP & OTAA   */
+  uint32_t ContextManagement;  /*!< 0: not compiled in Mw, 1 : compiled in MW  */
   uint32_t Region;   /*!< Combination of regions compiled on MW  */
   uint32_t ClassB;   /*!< 0: not compiled in Mw, 1 : compiled in MW  */
   uint32_t Kms;      /*!< 0: not compiled in Mw, 1 : compiled in MW  */

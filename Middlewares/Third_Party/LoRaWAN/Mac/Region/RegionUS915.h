@@ -94,16 +94,14 @@ extern "C"
  */
 #define US915_MAX_RX1_DR_OFFSET                     3
 
-/* ST_WORKAROUND_BEGIN: Certification requirement */
 /*!
  * Minimal Tx output power that can be used by the node
  */
-#if ( defined(CERTIF_LORAWAN_VERSION) && (CERTIF_LORAWAN_VERSION == 102) )
+#if (defined( CERTIF_LORAWAN_VERSION ) && ( CERTIF_LORAWAN_VERSION == 102 ))
 #define US915_MIN_TX_POWER                          TX_POWER_10
 #else
 #define US915_MIN_TX_POWER                          TX_POWER_14
 #endif /* CERTIF_LORAWAN_VERSION */
-/* ST_WORKAROUND_END */
 
 /*!
  * Maximal Tx output power that can be used by the node
@@ -178,7 +176,7 @@ extern "C"
  */
 #if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x01010003 ))
 #define US915_RFU1_SIZE                             5
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
 #define US915_RFU1_SIZE                             4
 #endif /* REGION_VERSION */
 
@@ -250,7 +248,6 @@ static const int8_t DatarateOffsetsUS915[5][4] =
     { DR_13, DR_13, DR_12, DR_11 }, // DR_4
 };
 
-/* ST_WORKAROUND_BEGIN: Keep repeater feature */
 /*!
  * Maximum payload with respect to the datarate index. Cannot operate with repeater.
  */
@@ -260,7 +257,6 @@ static const uint8_t MaxPayloadOfDatarateUS915[] = { 11, 53, 125, 242, 242, 0, 0
  * Maximum payload with respect to the datarate index. Can operate with repeater.
  */
 static const uint8_t MaxPayloadOfDatarateRepeaterUS915[] = { 11, 53, 125, 242, 242, 0, 0, 0, 33, 109, 222, 222, 222, 222, 0, 0 };
-/* ST_WORKAROUND_END */
 
 /*!
  * \brief The function gets a value of a specific phy attribute.

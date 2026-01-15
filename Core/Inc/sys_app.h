@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2021 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -98,9 +98,9 @@ void GetUniqueId(uint8_t *id);
 
 /**
   * @brief  callback to get the board 32 bits unique ID (LSB)
-  * @retval devAddr Device Address
+  * @param  devAddr Device Address
   */
-uint32_t GetDevAddr(void);
+void GetDevAddr(uint32_t *devAddr);
 
 /* USER CODE BEGIN EFP */
 

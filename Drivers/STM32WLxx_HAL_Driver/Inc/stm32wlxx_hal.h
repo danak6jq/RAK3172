@@ -23,7 +23,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32wlxx_hal_conf.h"
@@ -52,6 +52,7 @@ typedef enum
   HAL_TICK_FREQ_1KHZ         = 1U,
   HAL_TICK_FREQ_DEFAULT      = HAL_TICK_FREQ_1KHZ
 } HAL_TickFreqTypeDef;
+
 /**
   * @}
   */
@@ -70,10 +71,34 @@ typedef struct
   uint32_t InterruptMask2;      /*!< The SYSCFG Interrupt Mask to be configured.
                                      This parameter can be a combination of @ref SYSCFG_IM_GRP2 */
 } SYSCFG_InterruptTypeDef;
+
 /**
   * @}
   */
-#endif
+#endif /* DUAL_CORE */
+
+#if defined(STM32WL5Mxx)
+/** @defgroup HAL_RADIO_SWITCH_CONFIG RADIO Switch Config
+  * @{
+  */
+typedef enum
+{
+  RADIO_SWITCH_OFF    = 0,
+  RADIO_SWITCH_RX     = 1,
+  RADIO_SWITCH_RFO_LP = 2,
+  RADIO_SWITCH_RFO_HP = 3,
+} HAL_RADIO_SwitchConfig_TypeDef;
+
+typedef enum
+{
+  RADIO_RFO_LP_MAXPOWER = 0,
+  RADIO_RFO_HP_MAXPOWER,
+} HAL_RADIO_RFOMaxPowerConfig_TypeDef;
+
+/**
+  * @}
+  */
+#endif /* STM32WL5Mxx */
 
 /**
   * @}
@@ -184,8 +209,8 @@ typedef struct
 #define SYSCFG_FASTMODEPLUS_PB9         SYSCFG_CFGR1_I2C_PB9_FMP        /*!< Enable Fast-mode Plus on PB9 */
 
 /**
- * @}
- */
+  * @}
+  */
 
 #if defined(DUAL_CORE)
 /** @defgroup SYSCFG_IM_GRP1 SYSCFG INTERRUPT MASK GROUP1
@@ -293,6 +318,29 @@ typedef struct
   * @}
   */
 #endif /* DUAL_CORE */
+
+#if defined(STM32WL5Mxx)
+/** @defgroup RADIO_Exported_Constants RADIO Exported Constants
+  * @{
+  */
+#define RADIO_CONF_TCXO_NOT_SUPPORTED            0U
+#define RADIO_CONF_TCXO_SUPPORTED                1U
+
+#define RADIO_CONF_DCDC_NOT_SUPPORTED            0U
+#define RADIO_CONF_DCDC_SUPPORTED                1U
+
+#define RADIO_CONF_RFO_HP_MAX_22_dBm  ((int32_t) 22)
+#define RADIO_CONF_RFO_HP_MAX_20_dBm  ((int32_t) 20)
+#define RADIO_CONF_RFO_HP_MAX_17_dBm  ((int32_t) 17)
+#define RADIO_CONF_RFO_HP_MAX_14_dBm  ((int32_t) 14)
+#define RADIO_CONF_RFO_LP_MAX_15_dBm  ((int32_t) 15)
+#define RADIO_CONF_RFO_LP_MAX_14_dBm  ((int32_t) 14)
+#define RADIO_CONF_RFO_LP_MAX_10_dBm  ((int32_t) 10)
+
+/**
+  * @}
+  */
+#endif /* STM32WL5Mxx */
 
 /**
   * @}
@@ -489,9 +537,9 @@ typedef struct
   */
 /* Legacy define */
 #define __HAL_SYSCFG_SRAM2_WRP_1_31_ENABLE      __HAL_SYSCFG_SRAM2_WRP_0_31_ENABLE
-#define __HAL_SYSCFG_SRAM2_WRP_0_31_ENABLE(__SRAM2WRP__)    do {assert_param(IS_SYSCFG_SRAM2WRP_PAGE((__SRAM2WRP__)));\
-                                                                LL_SYSCFG_EnableSRAM2PageWRP_0_31(__SRAM2WRP__);\
-                                                            }while(0)
+#define __HAL_SYSCFG_SRAM2_WRP_0_31_ENABLE(__SRAM2WRP__)    do { assert_param(IS_SYSCFG_SRAM2WRP_PAGE((__SRAM2WRP__)));\
+                                                                 LL_SYSCFG_EnableSRAM2PageWRP_0_31(__SRAM2WRP__);      \
+                                                               } while(0)
 
 /** @brief  SRAM2 page write protection unlock prior to erase
   * @note   Writing a wrong key reactivates the write protection
@@ -535,7 +583,8 @@ typedef struct
   *            @arg @ref SYSCFG_FLAG_PKASRAM_BUSY  PKA SRAM Erase Ongoing
   * @retval The new state of __FLAG__ (TRUE or FALSE).
   */
-#define __HAL_SYSCFG_GET_FLAG(__FLAG__)         ((((((__FLAG__) == SYSCFG_FLAG_SRAM2_PE)? SYSCFG->CFGR2 : SYSCFG->SCSR) & (__FLAG__))!= 0) ? 1 : 0)
+#define __HAL_SYSCFG_GET_FLAG(__FLAG__)         ((((((__FLAG__) == SYSCFG_FLAG_SRAM2_PE)? SYSCFG->CFGR2 : SYSCFG->SCSR) &\
+                                                   (__FLAG__))!= 0) ? 1 : 0)
 
 /** @brief  Set the SPF bit to clear the SRAM Parity Error Flag.
   */
@@ -544,13 +593,13 @@ typedef struct
 /** @brief  Fast mode Plus driving capability enable/disable macros
   * @param __FASTMODEPLUS__ This parameter can be a value of @ref SYSCFG_FastModePlus_GPIO
   */
-#define __HAL_SYSCFG_FASTMODEPLUS_ENABLE(__FASTMODEPLUS__)  do {assert_param(IS_SYSCFG_FASTMODEPLUS((__FASTMODEPLUS__))); \
-                                                                LL_SYSCFG_EnableFastModePlus(__FASTMODEPLUS__);           \
-                                                               }while(0)
+#define __HAL_SYSCFG_FASTMODEPLUS_ENABLE(__FASTMODEPLUS__)  do { assert_param(IS_SYSCFG_FASTMODEPLUS((__FASTMODEPLUS__))); \
+                                                                 LL_SYSCFG_EnableFastModePlus(__FASTMODEPLUS__);           \
+                                                               } while(0)
 
-#define __HAL_SYSCFG_FASTMODEPLUS_DISABLE(__FASTMODEPLUS__) do {assert_param(IS_SYSCFG_FASTMODEPLUS((__FASTMODEPLUS__))); \
-                                                                LL_SYSCFG_DisableFastModePlus(__FASTMODEPLUS__);          \
-                                                               }while(0)
+#define __HAL_SYSCFG_FASTMODEPLUS_DISABLE(__FASTMODEPLUS__) do { assert_param(IS_SYSCFG_FASTMODEPLUS((__FASTMODEPLUS__))); \
+                                                                 LL_SYSCFG_DisableFastModePlus(__FASTMODEPLUS__);          \
+                                                               } while(0)
 
 /**
   * @}
@@ -588,73 +637,73 @@ typedef struct
 #if defined(DUAL_CORE)
 #if defined(CORE_CM0PLUS)
 #define IS_SYSCFG_IM_GRP1(__VALUE__)                    ((((__VALUE__) & 0x80U) == HAL_SYSCFG_GRP1_RESERVED)                                                     && \
-                                                        ((((__VALUE__) & HAL_SYSCFG_GRP1_RTCSTAMP_RTCTAMP_LSECSS)  == HAL_SYSCFG_GRP1_RTCSTAMP_RTCTAMP_LSECSS)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_RTCALARM               )  == HAL_SYSCFG_GRP1_RTCALARM               )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_RTCSSRU                )  == HAL_SYSCFG_GRP1_RTCSSRU                )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_RTCWKUP                )  == HAL_SYSCFG_GRP1_RTCWKUP                )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_RCC                    )  == HAL_SYSCFG_GRP1_RCC                    )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_FLASH                  )  == HAL_SYSCFG_GRP1_FLASH                  )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_PKA                    )  == HAL_SYSCFG_GRP1_PKA                    )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_AES                    )  == HAL_SYSCFG_GRP1_AES                    )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_COMP                   )  == HAL_SYSCFG_GRP1_COMP                   )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_ADC                    )  == HAL_SYSCFG_GRP1_ADC                    )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_DAC                    )  == HAL_SYSCFG_GRP1_DAC                    )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI0                  )  == HAL_SYSCFG_GRP1_EXTI0                  )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI1                  )  == HAL_SYSCFG_GRP1_EXTI1                  )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI2                  )  == HAL_SYSCFG_GRP1_EXTI2                  )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI3                  )  == HAL_SYSCFG_GRP1_EXTI3                  )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI4                  )  == HAL_SYSCFG_GRP1_EXTI4                  )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI5                  )  == HAL_SYSCFG_GRP1_EXTI5                  )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI6                  )  == HAL_SYSCFG_GRP1_EXTI6                  )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI7                  )  == HAL_SYSCFG_GRP1_EXTI7                  )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI8                  )  == HAL_SYSCFG_GRP1_EXTI8                  )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI9                  )  == HAL_SYSCFG_GRP1_EXTI9                  )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI10                 )  == HAL_SYSCFG_GRP1_EXTI10                 )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI11                 )  == HAL_SYSCFG_GRP1_EXTI11                 )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI12                 )  == HAL_SYSCFG_GRP1_EXTI12                 )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI13                 )  == HAL_SYSCFG_GRP1_EXTI13                 )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI14                 )  == HAL_SYSCFG_GRP1_EXTI14                 )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI15                 )  == HAL_SYSCFG_GRP1_EXTI15                 )))
+                                                         ((((__VALUE__) & HAL_SYSCFG_GRP1_RTCSTAMP_RTCTAMP_LSECSS)  == HAL_SYSCFG_GRP1_RTCSTAMP_RTCTAMP_LSECSS)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_RTCALARM               )  == HAL_SYSCFG_GRP1_RTCALARM               )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_RTCSSRU                )  == HAL_SYSCFG_GRP1_RTCSSRU                )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_RTCWKUP                )  == HAL_SYSCFG_GRP1_RTCWKUP                )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_RCC                    )  == HAL_SYSCFG_GRP1_RCC                    )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_FLASH                  )  == HAL_SYSCFG_GRP1_FLASH                  )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_PKA                    )  == HAL_SYSCFG_GRP1_PKA                    )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_AES                    )  == HAL_SYSCFG_GRP1_AES                    )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_COMP                   )  == HAL_SYSCFG_GRP1_COMP                   )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_ADC                    )  == HAL_SYSCFG_GRP1_ADC                    )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_DAC                    )  == HAL_SYSCFG_GRP1_DAC                    )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI0                  )  == HAL_SYSCFG_GRP1_EXTI0                  )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI1                  )  == HAL_SYSCFG_GRP1_EXTI1                  )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI2                  )  == HAL_SYSCFG_GRP1_EXTI2                  )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI3                  )  == HAL_SYSCFG_GRP1_EXTI3                  )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI4                  )  == HAL_SYSCFG_GRP1_EXTI4                  )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI5                  )  == HAL_SYSCFG_GRP1_EXTI5                  )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI6                  )  == HAL_SYSCFG_GRP1_EXTI6                  )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI7                  )  == HAL_SYSCFG_GRP1_EXTI7                  )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI8                  )  == HAL_SYSCFG_GRP1_EXTI8                  )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI9                  )  == HAL_SYSCFG_GRP1_EXTI9                  )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI10                 )  == HAL_SYSCFG_GRP1_EXTI10                 )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI11                 )  == HAL_SYSCFG_GRP1_EXTI11                 )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI12                 )  == HAL_SYSCFG_GRP1_EXTI12                 )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI13                 )  == HAL_SYSCFG_GRP1_EXTI13                 )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI14                 )  == HAL_SYSCFG_GRP1_EXTI14                 )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI15                 )  == HAL_SYSCFG_GRP1_EXTI15                 )))
 
 #define IS_SYSCFG_IM_GRP2(__VALUE__)                    ((((__VALUE__) & 0x80U) == HAL_SYSCFG_GRP2_RESERVED)                    && \
-                                                        ((((__VALUE__) & HAL_SYSCFG_GRP2_DMA1CH1)  == HAL_SYSCFG_GRP2_DMA1CH1)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_DMA1CH2)  == HAL_SYSCFG_GRP2_DMA1CH2)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_DMA1CH3)  == HAL_SYSCFG_GRP2_DMA1CH3)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_DMA1CH4)  == HAL_SYSCFG_GRP2_DMA1CH4)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_DMA1CH5)  == HAL_SYSCFG_GRP2_DMA1CH5)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_DMA1CH6)  == HAL_SYSCFG_GRP2_DMA1CH6)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_DMA1CH7)  == HAL_SYSCFG_GRP2_DMA1CH7)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_DMA2CH1)  == HAL_SYSCFG_GRP2_DMA2CH1)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_DMA2CH2)  == HAL_SYSCFG_GRP2_DMA2CH2)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_DMA2CH3)  == HAL_SYSCFG_GRP2_DMA2CH3)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_DMA2CH4)  == HAL_SYSCFG_GRP2_DMA2CH4)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_DMA2CH5)  == HAL_SYSCFG_GRP2_DMA2CH5)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_DMA2CH6)  == HAL_SYSCFG_GRP2_DMA2CH6)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_DMA2CH7)  == HAL_SYSCFG_GRP2_DMA2CH7)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_DMAMUX1)  == HAL_SYSCFG_GRP2_DMAMUX1)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_PVM3   )  == HAL_SYSCFG_GRP2_PVM3   )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_PVD    )  == HAL_SYSCFG_GRP2_PVD    )))
+                                                         ((((__VALUE__) & HAL_SYSCFG_GRP2_DMA1CH1)  == HAL_SYSCFG_GRP2_DMA1CH1)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_DMA1CH2)  == HAL_SYSCFG_GRP2_DMA1CH2)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_DMA1CH3)  == HAL_SYSCFG_GRP2_DMA1CH3)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_DMA1CH4)  == HAL_SYSCFG_GRP2_DMA1CH4)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_DMA1CH5)  == HAL_SYSCFG_GRP2_DMA1CH5)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_DMA1CH6)  == HAL_SYSCFG_GRP2_DMA1CH6)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_DMA1CH7)  == HAL_SYSCFG_GRP2_DMA1CH7)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_DMA2CH1)  == HAL_SYSCFG_GRP2_DMA2CH1)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_DMA2CH2)  == HAL_SYSCFG_GRP2_DMA2CH2)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_DMA2CH3)  == HAL_SYSCFG_GRP2_DMA2CH3)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_DMA2CH4)  == HAL_SYSCFG_GRP2_DMA2CH4)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_DMA2CH5)  == HAL_SYSCFG_GRP2_DMA2CH5)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_DMA2CH6)  == HAL_SYSCFG_GRP2_DMA2CH6)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_DMA2CH7)  == HAL_SYSCFG_GRP2_DMA2CH7)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_DMAMUX1)  == HAL_SYSCFG_GRP2_DMAMUX1)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_PVM3   )  == HAL_SYSCFG_GRP2_PVM3   )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_PVD    )  == HAL_SYSCFG_GRP2_PVD    )))
 
 #else /* !CORE_CM0PLUS */
 
 #define IS_SYSCFG_IM_GRP1(__VALUE__)                    ((((__VALUE__) & 0x80U) == HAL_SYSCFG_GRP1_RESERVED)                                          && \
-                                                        ((((__VALUE__) & HAL_SYSCFG_GRP1_RTCSTAMPTAMPLSECSS)  == HAL_SYSCFG_GRP1_RTCSTAMPTAMPLSECSS)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_RTCSSRU           )  == HAL_SYSCFG_GRP1_RTCSSRU           )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI5             )  == HAL_SYSCFG_GRP1_EXTI5             )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI6             )  == HAL_SYSCFG_GRP1_EXTI6             )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI7             )  == HAL_SYSCFG_GRP1_EXTI7             )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI8             )  == HAL_SYSCFG_GRP1_EXTI8             )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI9             )  == HAL_SYSCFG_GRP1_EXTI9             )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI10            )  == HAL_SYSCFG_GRP1_EXTI10            )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI11            )  == HAL_SYSCFG_GRP1_EXTI11            )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI12            )  == HAL_SYSCFG_GRP1_EXTI12            )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI13            )  == HAL_SYSCFG_GRP1_EXTI13            )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI14            )  == HAL_SYSCFG_GRP1_EXTI14            )  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI15            )  == HAL_SYSCFG_GRP1_EXTI15            )))
+                                                         ((((__VALUE__) & HAL_SYSCFG_GRP1_RTCSTAMPTAMPLSECSS)  == HAL_SYSCFG_GRP1_RTCSTAMPTAMPLSECSS)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_RTCSSRU           )  == HAL_SYSCFG_GRP1_RTCSSRU           )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI5             )  == HAL_SYSCFG_GRP1_EXTI5             )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI6             )  == HAL_SYSCFG_GRP1_EXTI6             )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI7             )  == HAL_SYSCFG_GRP1_EXTI7             )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI8             )  == HAL_SYSCFG_GRP1_EXTI8             )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI9             )  == HAL_SYSCFG_GRP1_EXTI9             )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI10            )  == HAL_SYSCFG_GRP1_EXTI10            )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI11            )  == HAL_SYSCFG_GRP1_EXTI11            )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI12            )  == HAL_SYSCFG_GRP1_EXTI12            )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI13            )  == HAL_SYSCFG_GRP1_EXTI13            )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI14            )  == HAL_SYSCFG_GRP1_EXTI14            )  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP1_EXTI15            )  == HAL_SYSCFG_GRP1_EXTI15            )))
 
 #define IS_SYSCFG_IM_GRP2(__VALUE__)                    ((((__VALUE__) & 0x80U) == HAL_SYSCFG_GRP2_RESERVED)              && \
-                                                        ((((__VALUE__) & HAL_SYSCFG_GRP2_PVM3)  == HAL_SYSCFG_GRP2_PVM3)  || \
-                                                         (((__VALUE__) & HAL_SYSCFG_GRP2_PVD )  == HAL_SYSCFG_GRP2_PVD )))
+                                                         ((((__VALUE__) & HAL_SYSCFG_GRP2_PVM3)  == HAL_SYSCFG_GRP2_PVM3)  || \
+                                                          (((__VALUE__) & HAL_SYSCFG_GRP2_PVD )  == HAL_SYSCFG_GRP2_PVD )))
 
 #endif /* CORE_CM0PLUS */
 #endif /* DUAL_CORE */
@@ -767,12 +816,30 @@ void HAL_SYSCFG_EnableIOAnalogSwitchBooster(void);
 void HAL_SYSCFG_DisableIOAnalogSwitchBooster(void);
 
 #if defined(DUAL_CORE)
-void HAL_SYSCFG_EnableIT(SYSCFG_InterruptTypeDef *Interrupt);
-void HAL_SYSCFG_DisableIT(SYSCFG_InterruptTypeDef *Interrupt);
+void HAL_SYSCFG_EnableIT(const SYSCFG_InterruptTypeDef *Interrupt);
+void HAL_SYSCFG_DisableIT(const SYSCFG_InterruptTypeDef *Interrupt);
 #endif
 /**
   * @}
   */
+
+#if defined( STM32WL5Mxx)
+/** @addtogroup HAL_Exported_Functions_Group5 HAL Radio Configuration functions
+  * @{
+  */
+
+/* RADIO Control functions  ****************************************************/
+HAL_StatusTypeDef HAL_RADIO_Init(void);
+HAL_StatusTypeDef HAL_RADIO_DeInit(void);
+HAL_StatusTypeDef HAL_RADIO_SetSwitchConfig(HAL_RADIO_SwitchConfig_TypeDef Config);
+uint8_t HAL_RADIO_IsTCXO(void);
+uint8_t HAL_RADIO_IsDCDC(void);
+int32_t HAL_RADIO_GetRFOMaxPowerConfig(HAL_RADIO_RFOMaxPowerConfig_TypeDef Config);
+
+/**
+  * @}
+  */
+#endif /* STM32WL5Mxx */
 
 /**
   * @}
@@ -788,6 +855,6 @@ void HAL_SYSCFG_DisableIT(SYSCFG_InterruptTypeDef *Interrupt);
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* __STM32WLxx_HAL_H */

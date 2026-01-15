@@ -181,7 +181,7 @@ extern "C"
  */
 #if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x01010003 ))
 #define EU868_RFU1_SIZE                             2
-#elif (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010001 ))
+#elif (defined( REGION_VERSION ) && (( REGION_VERSION == 0x02010001 ) || ( REGION_VERSION == 0x02010003 )))
 #define EU868_RFU1_SIZE                             1
 #endif /* REGION_VERSION */
 
@@ -280,7 +280,6 @@ static const uint8_t DataratesEU868[]  = { 12, 11, 10,  9,  8,  7,  7, 50 };
  */
 static const uint32_t BandwidthsEU868[] = { 125000, 125000, 125000, 125000, 125000, 125000, 250000, 0 };
 
-/* ST_WORKAROUND_BEGIN: Keep repeater feature */
 /*!
  * Maximum payload with respect to the datarate index. Cannot operate with repeater.
  */
@@ -290,7 +289,6 @@ static const uint8_t MaxPayloadOfDatarateEU868[] = { 51, 51, 51, 115, 242, 242, 
  * Maximum payload with respect to the datarate index. Can operate with repeater.
  */
 static const uint8_t MaxPayloadOfDatarateRepeaterEU868[] = { 51, 51, 51, 115, 222, 222, 222, 222 };
-/* ST_WORKAROUND_END */
 
 /*!
  * \brief The function gets a value of a specific phy attribute.

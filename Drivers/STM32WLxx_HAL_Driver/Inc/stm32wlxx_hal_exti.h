@@ -126,7 +126,7 @@ typedef struct
 #else
 #define EXTI_LINE_36                        (EXTI_RESERVED |              EXTI_REG2 | 0x04u)
 #define EXTI_LINE_37                        (EXTI_RESERVED |              EXTI_REG2 | 0x05u)
-#endif
+#endif /* DUAL_CORE */
 #define EXTI_LINE_38                        (EXTI_DIRECT   |              EXTI_REG2 | 0x06u)
 #if defined (DUAL_CORE)
 #define EXTI_LINE_39                        (EXTI_DIRECT   |              EXTI_REG2 | 0x07u)
@@ -136,7 +136,7 @@ typedef struct
 #define EXTI_LINE_39                        (EXTI_RESERVED |              EXTI_REG2 | 0x07u)
 #define EXTI_LINE_40                        (EXTI_RESERVED |              EXTI_REG2 | 0x08u)
 #define EXTI_LINE_41                        (EXTI_RESERVED |              EXTI_REG2 | 0x09u)
-#endif
+#endif /* DUAL_CORE */
 #define EXTI_LINE_42                        (EXTI_DIRECT   |              EXTI_REG2 | 0x0Au)
 #define EXTI_LINE_43                        (EXTI_DIRECT   |              EXTI_REG2 | 0x0Bu)
 #define EXTI_LINE_44                        (EXTI_DIRECT   |              EXTI_REG2 | 0x0Cu)
@@ -246,14 +246,14 @@ typedef struct
   * @{
   */
 #define IS_EXTI_LINE(__EXTI_LINE__)          ((((__EXTI_LINE__) & ~(EXTI_PROPERTY_MASK | EXTI_EVENT_PRESENCE_MASK | EXTI_REG_MASK | EXTI_PIN_MASK)) == 0x00u) && \
-                                        ((((__EXTI_LINE__) & EXTI_PROPERTY_MASK) == EXTI_DIRECT)   || \
-                                         (((__EXTI_LINE__) & EXTI_PROPERTY_MASK) == EXTI_CONFIG)   || \
-                                         (((__EXTI_LINE__) & EXTI_PROPERTY_MASK) == EXTI_GPIO))    && \
-                                         (((__EXTI_LINE__) & (EXTI_REG_MASK | EXTI_PIN_MASK))      < \
-                                         (((EXTI_LINE_NB / 32u) << EXTI_REG_SHIFT) | (EXTI_LINE_NB % 32u))))
+                                              ((((__EXTI_LINE__) & EXTI_PROPERTY_MASK) == EXTI_DIRECT)   || \
+                                               (((__EXTI_LINE__) & EXTI_PROPERTY_MASK) == EXTI_CONFIG)   || \
+                                               (((__EXTI_LINE__) & EXTI_PROPERTY_MASK) == EXTI_GPIO))    && \
+                                              (((__EXTI_LINE__) & (EXTI_REG_MASK | EXTI_PIN_MASK))      < \
+                                               (((EXTI_LINE_NB / 32u) << EXTI_REG_SHIFT) | (EXTI_LINE_NB % 32u))))
 
 #define IS_EXTI_MODE(__EXTI_LINE__)          ((((__EXTI_LINE__) & EXTI_MODE_MASK) != 0x00u) && \
-                                         (((__EXTI_LINE__) & ~EXTI_MODE_MASK) == 0x00u))
+                                              (((__EXTI_LINE__) & ~EXTI_MODE_MASK) == 0x00u))
 
 #define IS_EXTI_TRIGGER(__EXTI_LINE__)       (((__EXTI_LINE__) & ~EXTI_TRIGGER_MASK) == 0x00u)
 
@@ -287,7 +287,7 @@ typedef struct
 /* Configuration functions ****************************************************/
 HAL_StatusTypeDef HAL_EXTI_SetConfigLine(EXTI_HandleTypeDef *hexti, EXTI_ConfigTypeDef *pExtiConfig);
 HAL_StatusTypeDef HAL_EXTI_GetConfigLine(EXTI_HandleTypeDef *hexti, EXTI_ConfigTypeDef *pExtiConfig);
-HAL_StatusTypeDef HAL_EXTI_ClearConfigLine(EXTI_HandleTypeDef *hexti);
+HAL_StatusTypeDef HAL_EXTI_ClearConfigLine(const EXTI_HandleTypeDef *hexti);
 HAL_StatusTypeDef HAL_EXTI_RegisterCallback(EXTI_HandleTypeDef *hexti, EXTI_CallbackIDTypeDef CallbackID, void (*pPendingCbfn)(void));
 HAL_StatusTypeDef HAL_EXTI_GetHandle(EXTI_HandleTypeDef *hexti, uint32_t ExtiLine);
 /**
@@ -299,10 +299,10 @@ HAL_StatusTypeDef HAL_EXTI_GetHandle(EXTI_HandleTypeDef *hexti, uint32_t ExtiLin
   * @{
   */
 /* IO operation functions *****************************************************/
-void              HAL_EXTI_IRQHandler(EXTI_HandleTypeDef *hexti);
-uint32_t          HAL_EXTI_GetPending(EXTI_HandleTypeDef *hexti, uint32_t Edge);
-void              HAL_EXTI_ClearPending(EXTI_HandleTypeDef *hexti, uint32_t Edge);
-void              HAL_EXTI_GenerateSWI(EXTI_HandleTypeDef *hexti);
+void              HAL_EXTI_IRQHandler(const EXTI_HandleTypeDef *hexti);
+uint32_t          HAL_EXTI_GetPending(const EXTI_HandleTypeDef *hexti, uint32_t Edge);
+void              HAL_EXTI_ClearPending(const EXTI_HandleTypeDef *hexti, uint32_t Edge);
+void              HAL_EXTI_GenerateSWI(const EXTI_HandleTypeDef *hexti);
 
 /**
   * @}

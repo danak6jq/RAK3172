@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -83,8 +83,6 @@ static void TimestampNow(uint8_t *buff, uint16_t *size);
 static void tiny_snprintf_like(char *buf, uint32_t maxsize, const char *strFormat, ...);
 
 /* USER CODE BEGIN PFP */
-
-static uint8_t mvToLoRaWanBattVal(uint16_t mvolts);
 
 /* USER CODE END PFP */
 
@@ -178,13 +176,6 @@ uint8_t GetBatteryLevel(void)
 
   /* USER CODE BEGIN GetBatteryLevel_2 */
 
-  batteryLevelmV = (uint16_t) BSP_RAK5005_GetBatteryLevel();
-
-  /* convert battery using Li-Ion curve */
-  batteryLevel = mvToLoRaWanBattVal(batteryLevelmV);
-
-  APP_LOG(TS_ON, VLEVEL_M, "Li-Ion VDDA= %d\r\n", batteryLevel);
-
   /* USER CODE END GetBatteryLevel_2 */
 
   return batteryLevel;  /* 1 (very low) to 254 (fully charged) */
@@ -244,24 +235,21 @@ void GetUniqueId(uint8_t *id)
   /* USER CODE END GetUniqueId_2 */
 }
 
-uint32_t GetDevAddr(void)
+void GetDevAddr(uint32_t *devAddr)
 {
-  uint32_t val = 0;
   /* USER CODE BEGIN GetDevAddr_1 */
 
   /* USER CODE END GetDevAddr_1 */
 
-  val = LL_FLASH_GetUDN();
-  if (val == 0xFFFFFFFF)
+  *devAddr = LL_FLASH_GetUDN();
+  if (*devAddr == 0xFFFFFFFF)
   {
-    val = ((HAL_GetUIDw0()) ^ (HAL_GetUIDw1()) ^ (HAL_GetUIDw2()));
+    *devAddr = ((HAL_GetUIDw0()) ^ (HAL_GetUIDw1()) ^ (HAL_GetUIDw2()));
   }
 
   /* USER CODE BEGIN GetDevAddr_2 */
 
   /* USER CODE END GetDevAddr_2 */
-  return val;
-
 }
 
 /* USER CODE BEGIN EF */
@@ -321,29 +309,6 @@ static void tiny_snprintf_like(char *buf, uint32_t maxsize, const char *strForma
 }
 
 /* USER CODE BEGIN PrFD */
-
-static uint8_t
-mvToLoRaWanBattVal(uint16_t mvolts)
-{ // * 2.55
-	uint16_t bv;
-
-	if (mvolts < 3300)
-		return (0);
-
-	if (mvolts < 3600)
-	{
-		mvolts -= 3300;
-		return ((mvolts / 30) * 2.55);
-	}
-
-	mvolts -= 3600;
-	bv = (10 + (mvolts * 0.15F)) * 2.55;
-	if (bv > 254) {
-		bv = 254;
-	}
-
-	return (bv);
-}
 
 /* USER CODE END PrFD */
 
