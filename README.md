@@ -19,4 +19,6 @@ Unit tested in Class A and Class C.
 
 BSP dependencies have been completely removed other than that of the RAK3172 module/SiP.
 
+I apologize to those with clones of this repo for the mayhem; I warranted to get this cleaned-up and organized in a rational way going-forward. You may need to change your git remote before a pull, and that first pull might be a bit of work if you've made changes in the Drivers/BSP directory which no longer exists. I suggest putting non-LoRaWAN board support into a new directory underneath/next to LoRaWAN/App perhaps.
+
 As usual, this is provided with zero warranty for usefulness or reliability. 
