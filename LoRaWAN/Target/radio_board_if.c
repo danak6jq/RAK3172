@@ -23,6 +23,7 @@
 
 /* USER CODE BEGIN Includes */
 
+#include "radio_driver.h"
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
@@ -76,7 +77,39 @@ int32_t RBI_Init(void)
   /* 2/ Or implement RBI_Init here */
   int32_t retcode = 0;
   /* USER CODE BEGIN RBI_Init_2 */
-#warning user to provide its board code or to call his board driver functions
+	GPIO_InitTypeDef  gpio_init_structure = {0};
+
+	/*
+	 * XXX: does not appear to be a way to over-ride XTAL_DEFAULT_CAP_VALUE
+	 * This function is called shortly after setting this to the wrong value,
+	 * so correct it here
+
+	 */
+	SUBGRF_WriteRegister( REG_XTA_TRIM, 0x14 );
+	SUBGRF_WriteRegister( REG_XTB_TRIM, 0x14 );
+
+	RF_SW_CTRL1_GPIO_CLK_ENABLE();
+	RF_SW_CTRL2_GPIO_CLK_ENABLE();
+	RF_TCXO_VCC_CLK_ENABLE();
+
+	/* Configure the Radio Switch pin */
+	gpio_init_structure.Pin   = RF_SW_CTRL1_PIN;
+	gpio_init_structure.Mode  = GPIO_MODE_OUTPUT_PP;
+	gpio_init_structure.Pull  = GPIO_NOPULL;
+	gpio_init_structure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+
+	HAL_GPIO_Init(RF_SW_CTRL1_GPIO_PORT, &gpio_init_structure);
+
+	gpio_init_structure.Pin = RF_SW_CTRL2_PIN;
+	HAL_GPIO_Init(RF_SW_CTRL2_GPIO_PORT, &gpio_init_structure);
+
+	/* though we don't have a TXCO, set PB0 up anyway */
+	gpio_init_structure.Pin = RF_TCXO_VCC_PIN;
+	HAL_GPIO_Init(RF_TCXO_VCC_GPIO_PORT, &gpio_init_structure);
+
+	HAL_GPIO_WritePin(RF_SW_CTRL2_GPIO_PORT, RF_SW_CTRL2_PIN, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(RF_SW_CTRL1_GPIO_PORT, RF_SW_CTRL1_PIN, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(RF_TCXO_VCC_GPIO_PORT, RF_TCXO_VCC_PIN, GPIO_PIN_RESET);
   /* USER CODE END RBI_Init_2 */
   return retcode;
 #endif  /* USE_BSP_DRIVER  */
@@ -102,7 +135,15 @@ int32_t RBI_DeInit(void)
   /* 2/ Or implement RBI_DeInit here */
   int32_t retcode = 0;
   /* USER CODE BEGIN RBI_DeInit_2 */
-#warning user to provide its board code or to call his board driver functions
+	/* Turn off switch */
+	HAL_GPIO_WritePin(RF_SW_CTRL1_GPIO_PORT, RF_SW_CTRL1_PIN, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(RF_SW_CTRL2_GPIO_PORT, RF_SW_CTRL2_PIN, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(RF_TCXO_VCC_GPIO_PORT, RF_TCXO_VCC_PIN, GPIO_PIN_RESET);
+
+	/* DeInit the Radio Switch pin */
+	HAL_GPIO_DeInit(RF_SW_CTRL1_GPIO_PORT, RF_SW_CTRL1_PIN);
+	HAL_GPIO_DeInit(RF_SW_CTRL2_GPIO_PORT, RF_SW_CTRL2_PIN);
+	HAL_GPIO_DeInit(RF_TCXO_VCC_GPIO_PORT, RF_TCXO_VCC_PIN);
   /* USER CODE END RBI_DeInit_2 */
   return retcode;
 #endif  /* USE_BSP_DRIVER */
@@ -129,7 +170,35 @@ int32_t RBI_ConfigRFSwitch(RBI_Switch_TypeDef Config)
   /* 2/ Or implement RBI_ConfigRFSwitch here */
   int32_t retcode = 0;
   /* USER CODE BEGIN RBI_ConfigRFSwitch_2 */
-#warning user to provide its board code or to call his board driver functions
+	switch (Config)
+	{
+	case RBI_SWITCH_OFF:
+		/* Turn off switch */
+		HAL_GPIO_WritePin(RF_SW_CTRL1_GPIO_PORT, RF_SW_CTRL1_PIN, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(RF_SW_CTRL2_GPIO_PORT, RF_SW_CTRL2_PIN, GPIO_PIN_RESET);
+		break;
+
+	case RBI_SWITCH_RX:
+		/*Turns On in Rx Mode the RF Switch */
+		HAL_GPIO_WritePin(RF_SW_CTRL1_GPIO_PORT, RF_SW_CTRL1_PIN, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(RF_SW_CTRL2_GPIO_PORT, RF_SW_CTRL2_PIN, GPIO_PIN_RESET);
+		break;
+
+	case RBI_SWITCH_RFO_LP:
+		/*Turns On in Tx Low Power the RF Switch */
+		HAL_GPIO_WritePin(RF_SW_CTRL1_GPIO_PORT, RF_SW_CTRL1_PIN, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(RF_SW_CTRL2_GPIO_PORT, RF_SW_CTRL2_PIN, GPIO_PIN_SET);
+		break;
+
+	case RBI_SWITCH_RFO_HP:
+		/*Turns On in Tx High Power the RF Switch */
+		HAL_GPIO_WritePin(RF_SW_CTRL1_GPIO_PORT, RF_SW_CTRL1_PIN, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(RF_SW_CTRL2_GPIO_PORT, RF_SW_CTRL2_PIN, GPIO_PIN_SET);
+		break;
+
+	default:
+		break;
+	}
   /* USER CODE END RBI_ConfigRFSwitch_2 */
   return retcode;
 #endif  /* USE_BSP_DRIVER */
@@ -155,7 +224,7 @@ int32_t RBI_GetTxConfig(void)
   /* 2/ Or implement RBI_GetTxConfig here */
   int32_t retcode = RBI_CONF_RFO;
   /* USER CODE BEGIN RBI_GetTxConfig_2 */
-#warning user to provide its board code or to call his board driver functions
+
   /* USER CODE END RBI_GetTxConfig_2 */
   return retcode;
 #endif  /* USE_BSP_DRIVER */
@@ -181,7 +250,7 @@ int32_t RBI_IsTCXO(void)
   /* 2/ Or implement RBI_IsTCXO here */
   int32_t retcode = IS_TCXO_SUPPORTED;
   /* USER CODE BEGIN RBI_IsTCXO_2 */
-#warning user to provide its board code or to call his board driver functions
+
   /* USER CODE END RBI_IsTCXO_2 */
   return retcode;
 #endif  /* USE_BSP_DRIVER  */
@@ -207,7 +276,7 @@ int32_t RBI_IsDCDC(void)
   /* 2/ Or implement RBI_IsDCDC here */
   int32_t retcode = IS_DCDC_SUPPORTED;
   /* USER CODE BEGIN RBI_IsDCDC_2 */
-#warning user to provide its board code or to call his board driver functions
+
   /* USER CODE END RBI_IsDCDC_2 */
   return retcode;
 #endif  /* USE_BSP_DRIVER  */
@@ -233,13 +302,9 @@ int32_t RBI_GetRFOMaxPowerConfig(RBI_RFOMaxPowerConfig_TypeDef Config)
   /* 2/ Or implement RBI_RBI_GetRFOMaxPowerConfig here */
   int32_t ret = 0;
   /* USER CODE BEGIN RBI_GetRFOMaxPowerConfig_2 */
-#warning user to provide its board code or to call his board driver functions
-  if (Config == RBI_RFO_LP_MAXPOWER)
-  {
+	if (Config == RBI_RFO_LP_MAXPOWER) {
     ret = 15; /*dBm*/
-  }
-  else
-  {
+	} else {
     ret = 22; /*dBm*/
   }
   /* USER CODE END RBI_GetRFOMaxPowerConfig_2 */

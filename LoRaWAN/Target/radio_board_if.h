@@ -63,13 +63,13 @@ extern "C" {
 /* USER CODE END Exported Parameters */
 /* Indicates the type of switch between the ones proposed by CONFIG Constants
  */
-#define RBI_CONF_RFO                        RBI_CONF_RFO_LP_HP
+#define RBI_CONF_RFO                        RBI_CONF_RFO_HP
 
 /* Indicates whether or not TCXO is supported by the board
  * 0: TCXO not supported
  * 1: TCXO supported
  */
-#define IS_TCXO_SUPPORTED                   1U
+#define IS_TCXO_SUPPORTED                   0U
 
 /* Indicates whether or not DCDC is supported by the board
  * 0: DCDC not supported
@@ -89,7 +89,20 @@ extern "C" {
 
 #else
 /* USER CODE BEGIN Exported PinMapping */
-#warning user to provide its board definitions pins
+#define RF_SW_CTRL1_PIN                          GPIO_PIN_8
+#define RF_SW_CTRL1_GPIO_PORT                    GPIOB
+#define RF_SW_CTRL1_GPIO_CLK_ENABLE()            __HAL_RCC_GPIOB_CLK_ENABLE()
+#define RF_SW_RX_GPIO_CLK_DISABLE()              __HAL_RCC_GPIOB_CLK_DISABLE()
+
+#define RF_SW_CTRL2_PIN                          GPIO_PIN_13
+#define RF_SW_CTRL2_GPIO_PORT                    GPIOC
+#define RF_SW_CTRL2_GPIO_CLK_ENABLE()            __HAL_RCC_GPIOC_CLK_ENABLE()
+#define RF_SW_CTRL2_GPIO_CLK_DISABLE()           __HAL_RCC_GPIOC_CLK_DISABLE()
+
+#define RF_TCXO_VCC_PIN                          GPIO_PIN_0
+#define RF_TCXO_VCC_GPIO_PORT                    GPIOB
+#define RF_TCXO_VCC_CLK_ENABLE()                 __HAL_RCC_GPIOB_CLK_ENABLE()
+#define RF_TCXO_VCC_CLK_DISABLE()                __HAL_RCC_GPIOB_CLK_DISABLE()
 /* USER CODE END Exported PinMapping */
 #endif  /* USE_BSP_DRIVER  */
 

@@ -51,7 +51,7 @@ extern "C" {
 /*!
  * Defines the application data transmission duty cycle. 10s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            30000
+#define APP_TX_DUTYCYCLE                            10000
 
 /*!
  * LoRaWAN User application port
@@ -68,7 +68,7 @@ extern "C" {
 /*!
  * LoRaWAN default class
  */
-#define LORAWAN_DEFAULT_CLASS                       CLASS_C
+#define LORAWAN_DEFAULT_CLASS                       CLASS_A
 
 /*!
  * LoRaWAN default confirm state

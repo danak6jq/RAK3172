@@ -41,12 +41,12 @@ void MX_ADC_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc.Instance = ADC;
-  hadc.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV64;
+  hadc.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
   hadc.Init.Resolution = ADC_RESOLUTION_12B;
   hadc.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc.Init.ScanConvMode = ADC_SCAN_DISABLE;
   hadc.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-  hadc.Init.LowPowerAutoWait = ENABLE;
+  hadc.Init.LowPowerAutoWait = DISABLE;
   hadc.Init.LowPowerAutoPowerOff = ENABLE;
   hadc.Init.ContinuousConvMode = DISABLE;
   hadc.Init.NbrOfConversion = 1;
@@ -61,7 +61,7 @@ void MX_ADC_Init(void)
   hadc.Init.Oversampling.Ratio = ADC_OVERSAMPLING_RATIO_256;
   hadc.Init.Oversampling.RightBitShift = ADC_RIGHTBITSHIFT_8;
   hadc.Init.Oversampling.TriggeredMode = ADC_TRIGGEREDMODE_SINGLE_TRIGGER;
-  hadc.Init.TriggerFrequencyMode = ADC_TRIGGER_FREQ_LOW;
+  hadc.Init.TriggerFrequencyMode = ADC_TRIGGER_FREQ_HIGH;
   if (HAL_ADC_Init(&hadc) != HAL_OK)
   {
     Error_Handler();
@@ -76,22 +76,11 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
 {
 
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
   if(adcHandle->Instance==ADC)
   {
   /* USER CODE BEGIN ADC_MspInit 0 */
 
   /* USER CODE END ADC_MspInit 0 */
-
-  /** Initializes the peripherals clocks
-  */
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_ADC;
-    PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_HSI;
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
     /* ADC clock enable */
     __HAL_RCC_ADC_CLK_ENABLE();
 
