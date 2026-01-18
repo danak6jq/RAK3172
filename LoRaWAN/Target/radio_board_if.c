@@ -83,7 +83,6 @@ int32_t RBI_Init(void)
 	 * XXX: does not appear to be a way to over-ride XTAL_DEFAULT_CAP_VALUE
 	 * This function is called shortly after setting this to the wrong value,
 	 * so correct it here
-
 	 */
 	SUBGRF_WriteRegister( REG_XTA_TRIM, 0x14 );
 	SUBGRF_WriteRegister( REG_XTB_TRIM, 0x14 );
@@ -91,19 +90,14 @@ int32_t RBI_Init(void)
 	RF_SW_CTRL1_GPIO_CLK_ENABLE();
 	RF_SW_CTRL2_GPIO_CLK_ENABLE();
 
-
 	/* Configure the Radio Switch pin */
 	gpio_init_structure.Pin   = RF_SW_CTRL1_PIN;
 	gpio_init_structure.Mode  = GPIO_MODE_OUTPUT_PP;
 	gpio_init_structure.Pull  = GPIO_NOPULL;
 	gpio_init_structure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-
 	HAL_GPIO_Init(RF_SW_CTRL1_GPIO_PORT, &gpio_init_structure);
-
 	gpio_init_structure.Pin = RF_SW_CTRL2_PIN;
 	HAL_GPIO_Init(RF_SW_CTRL2_GPIO_PORT, &gpio_init_structure);
-
-
 
 	HAL_GPIO_WritePin(RF_SW_CTRL2_GPIO_PORT, RF_SW_CTRL2_PIN, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(RF_SW_CTRL1_GPIO_PORT, RF_SW_CTRL1_PIN, GPIO_PIN_RESET);
@@ -136,7 +130,6 @@ int32_t RBI_DeInit(void)
 	/* Turn off switch */
 	HAL_GPIO_WritePin(RF_SW_CTRL1_GPIO_PORT, RF_SW_CTRL1_PIN, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(RF_SW_CTRL2_GPIO_PORT, RF_SW_CTRL2_PIN, GPIO_PIN_RESET);
-
 
 	/* DeInit the Radio Switch pin */
 	HAL_GPIO_DeInit(RF_SW_CTRL1_GPIO_PORT, RF_SW_CTRL1_PIN);
