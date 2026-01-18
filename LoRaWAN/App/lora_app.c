@@ -305,6 +305,10 @@ static LmHandlerAppData_t AppData = { 0, 0, AppDataBuffer };
   * @brief Specifies the state of the application LED
   */
 static uint8_t AppLedStateOn = RESET;
+/**
+  * Temp buffer to store a FLASH page in RAM when partial replacement is needed
+  */
+static uint8_t FLASH_RAM_buffer[FLASH_IF_BUFFER_SIZE];
 /* USER CODE END PV */
 
 /* Exported functions ---------------------------------------------------------*/
@@ -316,9 +320,49 @@ void LoRaWAN_Init(void)
 {
   /* USER CODE BEGIN LoRaWAN_Init_LV */
 
+  uint32_t feature_version = 0UL;
   /* USER CODE END LoRaWAN_Init_LV */
 
   /* USER CODE BEGIN LoRaWAN_Init_1 */
+  /* Get LoRaWAN APP version*/
+  APP_LOG(TS_OFF, VLEVEL_M, "APPLICATION_VERSION: V%X.%X.%X\r\n",
+          (uint8_t)(APP_VERSION_MAIN),
+          (uint8_t)(APP_VERSION_SUB1),
+          (uint8_t)(APP_VERSION_SUB2));
+
+  /* Get MW LoRaWAN info */
+  APP_LOG(TS_OFF, VLEVEL_M, "MW_LORAWAN_VERSION:  V%X.%X.%X\r\n",
+          (uint8_t)(LORAWAN_VERSION_MAIN),
+          (uint8_t)(LORAWAN_VERSION_SUB1),
+          (uint8_t)(LORAWAN_VERSION_SUB2));
+
+  /* Get MW SubGhz_Phy info */
+  APP_LOG(TS_OFF, VLEVEL_M, "MW_RADIO_VERSION:    V%X.%X.%X\r\n",
+          (uint8_t)(SUBGHZ_PHY_VERSION_MAIN),
+          (uint8_t)(SUBGHZ_PHY_VERSION_SUB1),
+          (uint8_t)(SUBGHZ_PHY_VERSION_SUB2));
+
+  /* Get LoRaWAN Link Layer info */
+  LmHandlerGetVersion(LORAMAC_HANDLER_L2_VERSION, &feature_version);
+  APP_LOG(TS_OFF, VLEVEL_M, "L2_SPEC_VERSION:     V%X.%X.%X\r\n",
+          (uint8_t)(feature_version >> 24),
+          (uint8_t)(feature_version >> 16),
+          (uint8_t)(feature_version >> 8));
+
+  /* Get LoRaWAN Regional Parameters info */
+  LmHandlerGetVersion(LORAMAC_HANDLER_REGION_VERSION, &feature_version);
+  APP_LOG(TS_OFF, VLEVEL_M, "RP_SPEC_VERSION:     V%X-%X.%X.%X\r\n",
+          (uint8_t)(feature_version >> 24),
+          (uint8_t)(feature_version >> 16),
+          (uint8_t)(feature_version >> 8),
+          (uint8_t)(feature_version));
+
+
+
+  if (FLASH_IF_Init(FLASH_RAM_buffer) != FLASH_IF_OK)
+  {
+    Error_Handler();  // XXX: improve this
+  }
 
   /* USER CODE END LoRaWAN_Init_1 */
 
@@ -401,9 +445,7 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
 
   if (params != NULL)
   {
-    // HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET); /* LED_BLUE */
 
-    // UTIL_TIMER_Start(&RxLedTimer);
 
     if (params->IsMcpsIndication)
     {
@@ -447,12 +489,12 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                 if (AppLedStateOn == RESET)
                 {
                   APP_LOG(TS_OFF, VLEVEL_H, "LED OFF\r\n");
-                  // XXX: HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET); /* LED_RED */
+
                 }
                 else
                 {
                   APP_LOG(TS_OFF, VLEVEL_H, "LED ON\r\n");
-                  // XXX: HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET); /* LED_RED */
+
                 }
               }
               break;
@@ -467,7 +509,8 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
     if (params->RxSlot < RX_SLOT_NONE)
     {
       APP_LOG(TS_OFF, VLEVEL_H, "###### D/L FRAME:%04d | PORT:%d | DR:%d | SLOT:%s | RSSI:%d | SNR:%d\r\n",
-              params->DownlinkCounter, RxPort, params->Datarate, slotStrings[params->RxSlot], params->Rssi, params->Snr);
+              params->DownlinkCounter, RxPort, params->Datarate, slotStrings[params->RxSlot],
+              params->Rssi, params->Snr);
     }
   }
   /* USER CODE END OnRxData_1 */
@@ -481,6 +524,8 @@ static void SendTxData(void)
   sensor_t sensor_data;
   UTIL_TIMER_Time_t nextTxIn = 0;
 
+  if (LmHandlerIsBusy() == false)
+  {
 #ifdef CAYENNE_LPP
   uint8_t channel = 0;
 #else
@@ -567,6 +612,7 @@ static void SendTxData(void)
       APP_LOG(TS_ON, VLEVEL_L, "Next Tx in  : ~%d second(s)\r\n", (nextTxIn / 1000));
     }
   }
+  }
 
   if (EventType == TX_ON_TIMER)
   {
@@ -604,8 +650,7 @@ static void OnTxData(LmHandlerTxParams_t *params)
     /* Process Tx event only if its a mcps response to prevent some internal events (mlme) */
     if (params->IsMcpsConfirm != 0)
     {
-      // HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET); /* LED_GREEN */
-      // UTIL_TIMER_Start(&TxLedTimer);
+
 
       APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### ========== MCPS-Confirm =============\r\n");
       APP_LOG(TS_OFF, VLEVEL_H, "###### U/L FRAME:%04d | PORT:%d | DR:%d | PWR:%d", params->UplinkCounter,
