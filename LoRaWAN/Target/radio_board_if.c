@@ -90,7 +90,7 @@ int32_t RBI_Init(void)
 
 	RF_SW_CTRL1_GPIO_CLK_ENABLE();
 	RF_SW_CTRL2_GPIO_CLK_ENABLE();
-	RF_TCXO_VCC_CLK_ENABLE();
+
 
 	/* Configure the Radio Switch pin */
 	gpio_init_structure.Pin   = RF_SW_CTRL1_PIN;
@@ -103,13 +103,11 @@ int32_t RBI_Init(void)
 	gpio_init_structure.Pin = RF_SW_CTRL2_PIN;
 	HAL_GPIO_Init(RF_SW_CTRL2_GPIO_PORT, &gpio_init_structure);
 
-	/* though we don't have a TXCO, set PB0 up anyway */
-	gpio_init_structure.Pin = RF_TCXO_VCC_PIN;
-	HAL_GPIO_Init(RF_TCXO_VCC_GPIO_PORT, &gpio_init_structure);
+
 
 	HAL_GPIO_WritePin(RF_SW_CTRL2_GPIO_PORT, RF_SW_CTRL2_PIN, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(RF_SW_CTRL1_GPIO_PORT, RF_SW_CTRL1_PIN, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(RF_TCXO_VCC_GPIO_PORT, RF_TCXO_VCC_PIN, GPIO_PIN_RESET);
+
   /* USER CODE END RBI_Init_2 */
   return retcode;
 #endif  /* USE_BSP_DRIVER  */
@@ -138,12 +136,12 @@ int32_t RBI_DeInit(void)
 	/* Turn off switch */
 	HAL_GPIO_WritePin(RF_SW_CTRL1_GPIO_PORT, RF_SW_CTRL1_PIN, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(RF_SW_CTRL2_GPIO_PORT, RF_SW_CTRL2_PIN, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(RF_TCXO_VCC_GPIO_PORT, RF_TCXO_VCC_PIN, GPIO_PIN_RESET);
+
 
 	/* DeInit the Radio Switch pin */
 	HAL_GPIO_DeInit(RF_SW_CTRL1_GPIO_PORT, RF_SW_CTRL1_PIN);
 	HAL_GPIO_DeInit(RF_SW_CTRL2_GPIO_PORT, RF_SW_CTRL2_PIN);
-	HAL_GPIO_DeInit(RF_TCXO_VCC_GPIO_PORT, RF_TCXO_VCC_PIN);
+
   /* USER CODE END RBI_DeInit_2 */
   return retcode;
 #endif  /* USE_BSP_DRIVER */

@@ -99,10 +99,7 @@ extern "C" {
 #define RF_SW_CTRL2_GPIO_CLK_ENABLE()            __HAL_RCC_GPIOC_CLK_ENABLE()
 #define RF_SW_CTRL2_GPIO_CLK_DISABLE()           __HAL_RCC_GPIOC_CLK_DISABLE()
 
-#define RF_TCXO_VCC_PIN                          GPIO_PIN_0
-#define RF_TCXO_VCC_GPIO_PORT                    GPIOB
-#define RF_TCXO_VCC_CLK_ENABLE()                 __HAL_RCC_GPIOB_CLK_ENABLE()
-#define RF_TCXO_VCC_CLK_DISABLE()                __HAL_RCC_GPIOB_CLK_DISABLE()
+
 /* USER CODE END Exported PinMapping */
 #endif  /* USE_BSP_DRIVER  */
 
