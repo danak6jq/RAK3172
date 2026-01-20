@@ -127,6 +127,42 @@ extern "C" {
  */
 #define LORAWAN_DEFAULT_CLASS_B_C_RESP_TIMEOUT      8000
 
+/*Send*/
+#define CFG_APP_LORA_PROCESS_NAME                  "LORA_SEND_PROCESS"
+#define CFG_APP_LORA_PROCESS_ATTR_BITS             (0)
+#define CFG_APP_LORA_PROCESS_CB_MEM                (0)
+#define CFG_APP_LORA_PROCESS_CB_SIZE               (0)
+#define CFG_APP_LORA_PROCESS_STACK_MEM             (0)
+#define CFG_APP_LORA_PROCESS_PRIORITY              osPriorityNone
+#define CFG_APP_LORA_PROCESS_STACK_SIZE            1024
+
+/*Store Context*/
+#define CFG_APP_LORA_STORE_CONTEXT_NAME            "LORA_STORE_CONTEXT"
+#define CFG_APP_LORA_STORE_CONTEXT_ATTR_BITS       (0)
+#define CFG_APP_LORA_STORE_CONTEXT_CB_MEM          (0)
+#define CFG_APP_LORA_STORE_CONTEXT_CB_SIZE         (0)
+#define CFG_APP_LORA_STORE_CONTEXT_STACK_MEM       (0)
+#define CFG_APP_LORA_STORE_CONTEXT_PRIORITY        osPriorityNone
+#define CFG_APP_LORA_STORE_CONTEXT_STACK_SIZE      1024
+
+/*Stop Join*/
+#define CFG_APP_LORA_STOP_JOIN_NAME                "LORA_STOP_JOIN"
+#define CFG_APP_LORA_STOP_JOIN_ATTR_BITS           (0)
+#define CFG_APP_LORA_STOP_JOIN_CB_MEM              (0)
+#define CFG_APP_LORA_STOP_JOIN_CB_SIZE             (0)
+#define CFG_APP_LORA_STOP_JOIN_STACK_MEM           (0)
+#define CFG_APP_LORA_STOP_JOIN_PRIORITY            osPriorityNone
+#define CFG_APP_LORA_STOP_JOIN_STACK_SIZE          1024
+
+/*LM Handler*/
+#define CFG_LM_HANDLER_PROCESS_NAME                "LM_HANDLER_PROCESS"
+#define CFG_LM_HANDLER_PROCESS_ATTR_BITS           (0)
+#define CFG_LM_HANDLER_PROCESS_CB_MEM              (0)
+#define CFG_LM_HANDLER_PROCESS_CB_SIZE             (0)
+#define CFG_LM_HANDLER_PROCESS_STACK_MEM           (0)
+#define CFG_LM_HANDLER_PROCESS_PRIORITY            osPriorityNone
+#define CFG_LM_HANDLER_PROCESS_STACK_SIZE          1024
+
 /* USER CODE BEGIN EC */
 
 /* USER CODE END EC */
