@@ -1,8 +1,6 @@
 # RAK3172-SiP-FreeRTOS
 Port of STM32WLxx example for RAK3172 using FreeRTOS
 
-Note: currently measuring ~750uA idle current (which is far higher than ideal) so this is a work in progress.
-
 Major Update 14 Jan 2026:
 
 Branch 'RAK3172' is for the RAK3172 module
