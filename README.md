@@ -1,4 +1,5 @@
 # RAK2270-FreeRTOS
+# UNDER CONSTRUCTION
 Port of STM32WLxx example for RAK3172 using FreeRTOS
 
 
