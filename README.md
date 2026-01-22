@@ -1,11 +1,7 @@
-# RAK3172-SiP-FreeRTOS
+# RAK2270-FreeRTOS
 Port of STM32WLxx example for RAK3172 using FreeRTOS
 
-Major Update 14 Jan 2026:
 
-Branch 'RAK3172' is for the RAK3172 module
-
-Branch 'RAK3172-SiP' is for the RAK3172-SiP package
 
 STM32CubeMX v6.16.1
 
