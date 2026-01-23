@@ -97,10 +97,10 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
     /**LPUART1 GPIO Configuration
-    PA2     ------> LPUART1_TX
     PA3     ------> LPUART1_RX
+    PA2     ------> LPUART1_TX
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3;
+    GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_2;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -146,10 +146,10 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
     __HAL_RCC_LPUART1_CLK_DISABLE();
 
     /**LPUART1 GPIO Configuration
-    PA2     ------> LPUART1_TX
     PA3     ------> LPUART1_RX
+    PA2     ------> LPUART1_TX
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_2|GPIO_PIN_3);
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_3|GPIO_PIN_2);
 
     /* LPUART1 DMA DeInit */
     HAL_DMA_DeInit(uartHandle->hdmatx);
