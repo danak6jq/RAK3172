@@ -60,8 +60,18 @@ void Error_Handler(void);
 #define RTC_PREDIV_A ((1<<(15-RTC_N_PREDIV_S))-1)
 #define RTC_N_PREDIV_S 10
 #define RTC_PREDIV_S ((1<<RTC_N_PREDIV_S)-1)
-#define HIGH_FREQ_Pin GPIO_PIN_12
-#define HIGH_FREQ_GPIO_Port GPIOB
+#define NTC_ADC_Pin GPIO_PIN_3
+#define NTC_ADC_GPIO_Port GPIOB
+#define NTC_EN_Pin GPIO_PIN_4
+#define NTC_EN_GPIO_Port GPIOB
+#define LIS3D_INT2_Pin GPIO_PIN_14
+#define LIS3D_INT2_GPIO_Port GPIOB
+#define LIS3D_INT1_Pin GPIO_PIN_10
+#define LIS3D_INT1_GPIO_Port GPIOA
+#define ACT_Check_Pin GPIO_PIN_5
+#define ACT_Check_GPIO_Port GPIOB
+#define WP_Pin GPIO_PIN_13
+#define WP_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
