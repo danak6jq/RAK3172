@@ -92,7 +92,7 @@ extern "C" {
  * @note LORAWAN_DEFAULT_TX_POWER must be defined in the [XXXX_MIN_TX_POWER - XXXX_MAX_TX_POWER] range,
          else the end-device uses the XXXX_DEFAULT_TX_POWER value
  */
-#define LORAWAN_DEFAULT_TX_POWER                    TX_POWER_0
+#define LORAWAN_DEFAULT_TX_POWER                    TX_POWER_5
 
 /*!
  * LoRaWAN default activation type
