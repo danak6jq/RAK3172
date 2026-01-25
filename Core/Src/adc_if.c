@@ -24,6 +24,9 @@
 
 /* USER CODE BEGIN Includes */
 
+#include "cmsis_os2.h"
+#include <math.h>
+
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
@@ -73,6 +76,36 @@ static uint32_t ADC_ReadChannels(uint32_t channel);
 
 /* Exported functions --------------------------------------------------------*/
 /* USER CODE BEGIN EF */
+
+/*
+ * Get temperature from the NTC sensor
+ */
+int16_t
+SYS_GetNTCTemperatureLevel(void)
+{
+  uint16_t measuredVoltage = 0;
+  uint16_t batteryLevelmV = SYS_GetBatteryLevel();
+
+  HAL_GPIO_WritePin(GPIOB, NTC_EN_Pin, GPIO_PIN_SET);
+  osDelay(2); // 2mS delay
+  measuredVoltage = __LL_ADC_CALC_DATA_TO_VOLTAGE(batteryLevelmV,
+		  ADC_ReadChannels(ADC_CHANNEL_2), LL_ADC_RESOLUTION_12B);
+  // power-off sensor as soon as sample is taken
+  HAL_GPIO_WritePin(GPIOB, NTC_EN_Pin, GPIO_PIN_RESET);
+
+  float vbat = batteryLevelmV * 0.001f;
+  float tv2 = measuredVoltage * 0.001f;
+
+  // from the RAK firmware
+  float tmp = 84.987 - 25.18 * log(10 * tv2 / (vbat - tv2));
+  tmp = (0.00312f * tmp * tmp) + (0.927f * tmp) - 1.2f;
+  tmp = (0.976f * tmp) - 1.11;
+
+  // units of 0.1 degC
+  return ((int16_t) (tmp * 10.0f));
+}
+
+
 
 /* USER CODE END EF */
 

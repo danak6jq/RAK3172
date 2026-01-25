@@ -1,6 +1,6 @@
 Configuration	RAK3172-SiP-FreeRTOS
 STM32CubeMX 	6.16.1
-Date	01/23/2026
+Date	01/25/2026
 MCU	STM32WLE5JCIx
 
 

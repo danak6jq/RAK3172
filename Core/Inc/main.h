@@ -66,8 +66,10 @@ void Error_Handler(void);
 #define NTC_EN_GPIO_Port GPIOB
 #define LIS3D_INT2_Pin GPIO_PIN_14
 #define LIS3D_INT2_GPIO_Port GPIOB
+#define LIS3D_INT2_EXTI_IRQn EXTI15_10_IRQn
 #define LIS3D_INT1_Pin GPIO_PIN_10
 #define LIS3D_INT1_GPIO_Port GPIOA
+#define LIS3D_INT1_EXTI_IRQn EXTI15_10_IRQn
 #define ACT_Check_Pin GPIO_PIN_5
 #define ACT_Check_GPIO_Port GPIOB
 #define WP_Pin GPIO_PIN_13

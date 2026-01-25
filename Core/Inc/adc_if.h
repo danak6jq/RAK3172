@@ -92,6 +92,12 @@ uint16_t SYS_GetBatteryLevel(void);
 
 /* USER CODE BEGIN EFP */
 
+/**
+  * @brief  Get the current temperature
+  * @return value temperature in degree Celsius( q7.8 )
+  */
+int16_t SYS_GetNTCTemperatureLevel(void);
+
 /* USER CODE END EFP */
 
 #ifdef __cplusplus
