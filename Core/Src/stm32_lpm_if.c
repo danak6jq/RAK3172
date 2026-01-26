@@ -26,6 +26,8 @@
 
 /* USER CODE BEGIN Includes */
 
+#include "i2c.h"
+
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
@@ -93,6 +95,8 @@ void PWR_EnterStopMode(void)
 {
   /* USER CODE BEGIN EnterStopMode_1 */
 
+	// XXX: HAL_I2C_DeInit(&hi2c2);
+
   /* USER CODE END EnterStopMode_1 */
   HAL_SuspendTick();
   /* Clear Status Flag before entering STOP/STANDBY Mode */
@@ -122,6 +126,8 @@ void PWR_ExitStopMode(void)
   /* Resume not retained USARTx and DMA */
   vcom_Resume();
   /* USER CODE BEGIN ExitStopMode_2 */
+
+  MX_I2C2_Init();  // XXX:
 
   /* USER CODE END ExitStopMode_2 */
 }

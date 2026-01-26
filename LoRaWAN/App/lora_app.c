@@ -367,6 +367,8 @@ static uint8_t AppLedStateOn = RESET;
   * Temp buffer to store a FLASH page in RAM when partial replacement is needed
   */
 static uint8_t FLASH_RAM_buffer[FLASH_IF_BUFFER_SIZE];
+
+extern uint8_t i1ndx;
 /* USER CODE END PV */
 
 /* Exported functions ---------------------------------------------------------*/
@@ -415,11 +417,20 @@ void LoRaWAN_Init(void)
           (uint8_t)(feature_version >> 8),
           (uint8_t)(feature_version));
 
+#if 0
   uint8_t fm_buf[256];
 
   // test - read from the external flash
   HAL_I2C_Mem_Read(&hi2c2, 0xA1, 0x0000,
                    I2C_MEMADD_SIZE_16BIT, fm_buf, 256, 1000);
+
+  fm_buf[0] = 0xff;
+  fm_buf[1] = 0xff;
+  HAL_GPIO_WritePin(WP_GPIO_Port, WP_Pin, GPIO_PIN_RESET);
+  HAL_I2C_Mem_Write(&hi2c2, 0xA1, 0x0000,
+                   I2C_MEMADD_SIZE_16BIT, fm_buf, 8, 1000);
+  HAL_GPIO_WritePin(WP_GPIO_Port, WP_Pin, GPIO_PIN_SET);
+#endif
 
   if (FLASH_IF_Init(FLASH_RAM_buffer) != FLASH_IF_OK)
   {
@@ -484,27 +495,6 @@ void LoRaWAN_Init(void)
 }
 
 /* USER CODE BEGIN PB_Callbacks */
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  switch (GPIO_Pin) {
-  case  LIS3D_INT1_Pin:
-	  // check to see if source is active
-	  // (both INT1 and INT2 come in on the same IRQ vector)
-	  // edge-triggered, NVIC has been cleared but LIS3DH needs attention
-	  // HAL_GPIO_ReadPin(LIS3D_INT1_GPIO_Port, LIS3D_INT1_Pin);
-	  // XXX: osThreadFlagsSet(Thd_LoraSendProcessId, 1);
-      break;
-
-  case  LIS3D_INT2_Pin:
-	  // check to see if source is active
-      // XXX:
-      break;
-
-    default:
-      break;
-  }
-}
 
 /* USER CODE END PB_Callbacks */
 
@@ -680,14 +670,14 @@ static void SendTxData(void)
 	  uint16_t altitudeGps = 0;
 	#endif /* CAYENNE_LPP */
 
-	  MX_I2C2_Init();  // XXX:
 	  EnvSensors_Read(&sensor_data);
 
 	  APP_LOG(TS_ON, VLEVEL_M, "VDDA: %d\r\n", batteryLevel);
 	  APP_LOG(TS_ON, VLEVEL_M, "temp: %d\r\n", (int16_t)(sensor_data.temperature));
 	  APP_LOG(TS_ON, VLEVEL_M, "Batt voltage: %d\r\n", SYS_GetBatteryLevel());
 	  APP_LOG(TS_ON, VLEVEL_M, "NTC voltage: %d\r\n", SYS_GetNTCTemperatureLevel());
-	  APP_LOG(TS_ON, VLEVEL_M, "I2C2 ready: %d\r\n", HAL_I2C_IsDeviceReady(&hi2c2, 0x19 << 1, 10, HAL_MAX_DELAY));
+	  // APP_LOG(TS_ON, VLEVEL_M, "I2C2 ready: %d\r\n", HAL_I2C_IsDeviceReady(&hi2c2, 0x19 << 1, 10, HAL_MAX_DELAY));
+	  APP_LOG(TS_ON, VLEVEL_M, "i1ndx: %u\r\n", i1ndx);
 
 	  AppData.Port = LORAWAN_USER_APP_PORT;
 

@@ -72,6 +72,13 @@ stmdev_ctx_t lis3dh_ctx;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
+
+// configure LIS3DH
+static void lis3dh_setReg();
+
+// LIS3DH interrupt handler
+static void lis3dh_InterruptHandler();
+
 static int32_t
 lis3dh_platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
                               uint16_t len);
@@ -128,10 +135,7 @@ int32_t EnvSensors_Init(void)
 {
   int32_t ret = 0;
   /* USER CODE BEGIN EnvSensors_Init */
-  volatile lis3dh_reg_t reg;
-
-  // XXX: probably need to find a better place for this
-  MX_I2C2_Init();  // XXX:
+  lis3dh_reg_t reg;
 
   /* Initialize mems driver interface */
   lis3dh_ctx.write_reg = lis3dh_platform_write;
@@ -145,16 +149,118 @@ int32_t EnvSensors_Init(void)
   /* Check device ID */
   lis3dh_device_id_get(&lis3dh_ctx, &reg.byte);
 
+  // Initialize LIS3DH as motion detector
+  lis3dh_setReg();
+
   /* USER CODE END EnvSensors_Init */
   return ret;
 }
 
 /* USER CODE BEGIN EF */
 
+/*
+ * External Interrupt callback
+ * Only EXTI used on RAK2270 is for the LIS3DH, so it's best to locate this here
+ */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  switch (GPIO_Pin) {
+  case  LIS3D_INT1_Pin:
+	  // Only need to call one interrupt handler for LIS3DH
+	  // (both INT1 and INT2 come in on the same IRQ vector)
+	  lis3dh_InterruptHandler();
+      break;
+
+  case  LIS3D_INT2_Pin:
+	  // check to see if source is active
+      break;
+
+    default:
+      break;
+  }
+}
+
 /* USER CODE END EF */
 
 /* Private Functions Definition -----------------------------------------------*/
 /* USER CODE BEGIN PrFD */
+
+
+/*
+ * Generally taken from RAK2270 firmware
+ */
+static void
+lis3dh_setReg()
+{
+  uint16_t md_threshold = 400;	// 400mg XXX: make configurable
+  uint16_t md_sample_rate = LIS3DH_ODR_1Hz;	// XXX: make configurable
+  lis3dh_reg_t lis3dh_reg;
+
+  lis3dh_operating_mode_set(&lis3dh_ctx, LIS3DH_HR_12bit);
+  lis3dh_data_rate_set(&lis3dh_ctx, md_sample_rate);
+  lis3dh_high_pass_int_conf_set(&lis3dh_ctx, LIS3DH_ON_INT1_GEN);
+  lis3dh_high_pass_on_outputs_set(&lis3dh_ctx, PROPERTY_ENABLE);
+
+  lis3dh_pin_int1_config_get(&lis3dh_ctx, &lis3dh_reg.ctrl_reg3);
+  lis3dh_reg.ctrl_reg3.i1_ia1 = PROPERTY_ENABLE;
+  lis3dh_pin_int1_config_set(&lis3dh_ctx, &lis3dh_reg.ctrl_reg3);
+
+  // Forgive me, I love the ?: construct
+  lis3dh_full_scale_set(&lis3dh_ctx,
+		  md_threshold >= 8000 ? LIS3DH_16g :
+		  md_threshold >= 4000 ? LIS3DH_8g :
+		  md_threshold >= 2000 ? LIS3DH_4g : LIS3DH_2g);
+
+  lis3dh_int1_pin_notification_mode_set(&lis3dh_ctx, LIS3DH_INT1_LATCHED);
+
+  lis3dh_int1_gen_conf_get(&lis3dh_ctx, &lis3dh_reg.int1_cfg);
+  lis3dh_reg.int1_cfg.xhie = PROPERTY_ENABLE;
+  lis3dh_reg.int1_cfg.yhie = PROPERTY_ENABLE;
+  lis3dh_reg.int1_cfg.zhie = PROPERTY_ENABLE;
+  lis3dh_int1_gen_conf_set(&lis3dh_ctx, &lis3dh_reg.int1_cfg);
+
+  uint8_t val = md_threshold >= 8000 ? md_threshold / 125 :
+	md_threshold >= 4000 ? md_threshold / 63 :
+    md_threshold >= 2000 ? md_threshold / 31 :
+    md_threshold / 16;
+
+  if (val > 127) {
+	  val = 127;
+  }
+
+  lis3dh_int1_gen_threshold_set(&lis3dh_ctx, val);
+  lis3dh_int1_pin_notification_mode_set(&lis3dh_ctx, LIS3DH_INT1_LATCHED);
+
+  return ;
+}
+
+// check to see if source is active
+// (both INT1 and INT2 come in on the same IRQ vector)
+// edge-triggered, NVIC has been cleared but LIS3DH needs attention
+// HAL_GPIO_ReadPin(LIS3D_INT1_GPIO_Port, LIS3D_INT1_Pin);
+// XXX: osThreadFlagsSet(Thd_LoraSendProcessId, 1);
+
+uint8_t i1history[16];
+uint8_t i1ndx;
+
+static void
+lis3dh_InterruptHandler()
+{
+  lis3dh_reg_t reg;
+
+  // We may have been in STOP mode, need to re-init
+  // ** INTERRUPT_CONTEXT **
+
+  lis3dh_int1_gen_source_get(&lis3dh_ctx, &reg.int1_src);
+
+  i1history[i1ndx++] = reg.byte;
+  if (i1ndx >= 16) {
+	  i1ndx = 0;
+  }
+
+}
+
+
 
 /*
  * LIS3DH platform interface via I2C
