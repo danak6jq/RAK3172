@@ -1,5 +1,7 @@
 # RAK2270-FreeRTOS
 # UNDER CONSTRUCTION
+Checkpointed 25 Jan 2026 with support for LIS3DH, 24CM02 unit-tested.
+
 Port of STM32WLxx example for RAK3172 using FreeRTOS
 
 
