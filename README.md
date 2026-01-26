@@ -1,6 +1,7 @@
 # RAK2270-FreeRTOS
 # UNDER CONSTRUCTION
-Checkpointed 25 Jan 2026 with support for LIS3DH, 24CM02 unit-tested.
+26 Jan 2026: implemented motion-detection with test code; verified idle current of 3.3uA between ULs.
+25 Jan 2026: Checkpointed with support for LIS3DH, 24CM02 unit-tested.
 
 Port of STM32WLxx example for RAK3172 using FreeRTOS
 
