@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    sys_sensors.c
-  * @author  MCD Application Team
-  * @brief   Manages the sensors on the application
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    sys_sensors.c
+ * @author  MCD Application Team
+ * @brief   Manages the sensors on the application
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2026 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -28,44 +28,16 @@
 #endif /* SENSOR_ENABLED */
 
 /* USER CODE BEGIN Includes */
-#if defined (SENSOR_ENABLED) && (SENSOR_ENABLED == 1)
-#if defined (X_NUCLEO_IKS01A2)
-#warning "IKS drivers are today available for several families but not stm32WL"
-#warning "up to the user adapt IKS low layer to map it on WL board driver"
-#warning "this code would work only if user provide necessary IKS and BSP layers"
-#include "iks01a2_env_sensors.h"
-#elif defined (X_NUCLEO_IKS01A3)
 
-/*
-## How to add IKS01A3 to STM32CubeWL
-   Note that LoRaWAN_End_Node Example is used as an example for steps below.
- 1. Open the LoRaWAN_End_Node CubeMX project by double-clicking on the LoRaWAN_End_Node.ioc under "STM32Cube_FW_WL_V1.x.x\Projects\NUCLEO-WL55JC\Applications\LoRaWAN\LoRaWAN_End_Node"
- 2. From the CubeMX project, click on "Software Packs"->"Manage Software Packs" to open the Embedded Software Packages Manager. Then, click on the "STMicroelectronics" tab, expand the X-CUBE-MEMS1, check the latest version of this pack (i.e. 9.0.0), and install. Then, close the Embedded Software Packages Manager.
- 3. From the CubeMX project, click on "Software Packs"->"Select Components" to open the Software Packs Component Selector, expand the X-CUBE-MEMS1 pack and select the "Board Extension IKS01A3" component by checking the respective box, and click OK.
- 4. From the CubeMX project, expand the "Connectivity" category and enable I2C2 on pins PA11 (I2C2_SDA) and PA12 (I2C2_SCK).
- 5. From the CubeMX project, expand the "Software Packs" category and enable the "Board Extension IKS01A3" by checking the box, and choose I2C2 under the "Found Solutions" menu.
- 6. From the CubeMX project, click the "Project Manager" section
-    - From the "Project Settings" section, select your Toolchain/IDE of choice (if CubeIDE, uncheck the "Generator Under Root" option).
-    - From the "Code Generator" section, select "Copy only the necessary library files".
- 7. Click "GENERATE CODE" to generate the code project with the MEMS drivers integrated.
- 8. From the code project, find and open the sys_conf.h and make the following edits
-    - Set the #define SENSOR_ENABLED to 1
-    - Set the #define LOW_POWER_DISABLE to 1 to prevent the device from entering low power mode. This is needed, since the I2C2 requires handling when exiting low power modes, so to prevent issues, best is to disable low power mode, however, if low power mode is desired, you'll have to re-initialize the I2C2 from PWR_ExitStopMode() in stm32_lpm_if.c, so you can just call HAL_I2C_Init() from there.
- 9. From the code project, find and open lora_app.h, and uncomment the following line
-    #define CAYENNE_LPP
- 10. From the code project properties, add X_NUCLEO_IKS01A3 Pre-processor Defined symbol.
- 11. Save all changes and build project
- 12. Connect the X-NUCLEO-IKS01A3 expansion board on the NUCLEO-WL55JC1
- 13. Load and run the code
-*/
-#warning "IKS drivers are today available for several families but not stm32WL, follow steps defined in sys_sensors.c"
-#include "iks01a3_env_sensors.h"
-#else  /* not X_IKS01xx */
-#error "user to include its sensor drivers"
-#endif  /* X_NUCLEO_IKS01xx */
-#elif !defined (SENSOR_ENABLED)
-#error SENSOR_ENABLED not defined
-#endif  /* SENSOR_ENABLED */
+#include "i2c.h"
+
+#if	LIS3DH_ENABLED
+#include "lis3dh_reg.h"
+#endif
+
+#include "ms8607.h"
+#include "cmsis_os2.h"
+
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
@@ -87,6 +59,7 @@
 #define HUMIDITY_DEFAULT_VAL      50.0f                 /*!< default humidity */
 #define TEMPERATURE_DEFAULT_VAL   18.0f                 /*!< default temperature */
 #define PRESSURE_DEFAULT_VAL      1000.0f               /*!< default pressure */
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -97,24 +70,56 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-#if defined (SENSOR_ENABLED) && (SENSOR_ENABLED == 1)
-#if defined (X_NUCLEO_IKS01A2)
-#warning "IKS drivers are today available for several families but not stm32WL"
-#warning "up to the user adapt IKS low layer to map it on WL board driver"
-#warning "this code would work only if user provide necessary IKS and BSP layers"
-IKS01A2_ENV_SENSOR_Capabilities_t EnvCapabilities;
-#elif defined (X_NUCLEO_IKS01A3)
-IKS01A3_ENV_SENSOR_Capabilities_t EnvCapabilities;
-#else  /* not X_IKS01Ax */
-#error "user to include its sensor drivers"
-#endif  /* X_NUCLEO_IKS01 */
-#elif !defined (SENSOR_ENABLED)
-#error SENSOR_ENABLED not defined
-#endif  /* SENSOR_ENABLED */
+
+#if	LIS3DH_ENABLED
+stmdev_ctx_t lis3dh_ctx;
+#endif
+
+/*
+ * MS8607 present and initialized
+ */
+bool ms8607_present = false;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
+
+#if	LIS3DH_ENABLED
+// configure LIS3DH
+static void lis3dh_setReg();
+
+// LIS3DH interrupt handler
+static void lis3dh_InterruptHandler();
+
+static int32_t
+lis3dh_platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
+                              uint16_t len);
+
+/*
+ * @brief  Read generic device register (platform dependent)
+ *
+ * @param  handle    customizable argument. In this examples is used in
+ *                   order to select the correct sensor bus handler.
+ * @param  reg       register to read
+ * @param  bufp      pointer to buffer that store the data read
+ * @param  len       number of consecutive register to read
+ *
+ */
+static int32_t
+lis3dh_platform_read(void *handle, uint8_t reg, uint8_t *bufp,
+                             uint16_t len);
+
+
+/*
+ * @brief  platform specific delay (platform dependent)
+ *
+ * @param  ms        delay in ms
+ *
+ */
+static void
+lis3dh_platform_delay(uint32_t ms);
+#endif	// LIS3DH_ENABLED
 
 /* USER CODE END PFP */
 
@@ -122,39 +127,26 @@ IKS01A3_ENV_SENSOR_Capabilities_t EnvCapabilities;
 int32_t EnvSensors_Read(sensor_t *sensor_data)
 {
   /* USER CODE BEGIN EnvSensors_Read */
-  float HUMIDITY_Value = HUMIDITY_DEFAULT_VAL;
-  float TEMPERATURE_Value = TEMPERATURE_DEFAULT_VAL;
-  float PRESSURE_Value = PRESSURE_DEFAULT_VAL;
+	float HUMIDITY_Value = HUMIDITY_DEFAULT_VAL;
+	float TEMPERATURE_Value = TEMPERATURE_DEFAULT_VAL;
+	float PRESSURE_Value = PRESSURE_DEFAULT_VAL;
+	float tempHumidity;
 
-#if defined (SENSOR_ENABLED) && (SENSOR_ENABLED == 1)
-#if (USE_IKS01A2_ENV_SENSOR_HTS221_0 == 1)
-  IKS01A2_ENV_SENSOR_GetValue(HTS221_0, ENV_HUMIDITY, &HUMIDITY_Value);
-  IKS01A2_ENV_SENSOR_GetValue(HTS221_0, ENV_TEMPERATURE, &TEMPERATURE_Value);
-#endif /* USE_IKS01A2_ENV_SENSOR_HTS221_0 */
-#if (USE_IKS01A2_ENV_SENSOR_LPS22HB_0 == 1)
-  IKS01A2_ENV_SENSOR_GetValue(LPS22HB_0, ENV_PRESSURE, &PRESSURE_Value);
-  IKS01A2_ENV_SENSOR_GetValue(LPS22HB_0, ENV_TEMPERATURE, &TEMPERATURE_Value);
-#endif /* USE_IKS01A2_ENV_SENSOR_LPS22HB_0 */
-#if (USE_IKS01A3_ENV_SENSOR_HTS221_0 == 1)
-  IKS01A3_ENV_SENSOR_GetValue(IKS01A3_HTS221_0, ENV_HUMIDITY, &HUMIDITY_Value);
-  IKS01A3_ENV_SENSOR_GetValue(IKS01A3_HTS221_0, ENV_TEMPERATURE, &TEMPERATURE_Value);
-#endif /* USE_IKS01A3_ENV_SENSOR_HTS221_0 */
-#if (USE_IKS01A3_ENV_SENSOR_LPS22HH_0 == 1)
-  IKS01A3_ENV_SENSOR_GetValue(IKS01A3_LPS22HH_0, ENV_PRESSURE, &PRESSURE_Value);
-  IKS01A3_ENV_SENSOR_GetValue(IKS01A3_LPS22HH_0, ENV_TEMPERATURE, &TEMPERATURE_Value);
-#endif /* USE_IKS01A3_ENV_SENSOR_LPS22HH_0 */
-#else
-  TEMPERATURE_Value = (SYS_GetTemperatureLevel() >> 8);
-#endif  /* SENSOR_ENABLED */
+	sensor_data->latitude = (int32_t) ((STSOP_LATTITUDE * MAX_GPS_POS) / 90);
+	sensor_data->longitude = (int32_t) ((STSOP_LONGITUDE * MAX_GPS_POS) / 180);
 
-  sensor_data->humidity    = HUMIDITY_Value;
-  sensor_data->temperature = TEMPERATURE_Value;
-  sensor_data->pressure    = PRESSURE_Value;
+	if (ms8607_present) {
+		ms8607_read_temperature_pressure_humidity(&TEMPERATURE_Value,
+				&PRESSURE_Value, &tempHumidity);
+		ms8607_get_compensated_humidity(TEMPERATURE_Value, tempHumidity,
+				&HUMIDITY_Value);
+	}
 
-  sensor_data->latitude  = (int32_t)((STSOP_LATTITUDE  * MAX_GPS_POS) / 90);
-  sensor_data->longitude = (int32_t)((STSOP_LONGITUDE  * MAX_GPS_POS) / 180);
+	sensor_data->humidity = HUMIDITY_Value;
+	sensor_data->temperature = TEMPERATURE_Value;
+	sensor_data->pressure = PRESSURE_Value;
 
-  return 0;
+	return 0;
   /* USER CODE END EnvSensors_Read */
 }
 
@@ -162,129 +154,205 @@ int32_t EnvSensors_Init(void)
 {
   int32_t ret = 0;
   /* USER CODE BEGIN EnvSensors_Init */
-#if defined (SENSOR_ENABLED) && (SENSOR_ENABLED == 1)
-  /* Init */
-#if (USE_IKS01A2_ENV_SENSOR_HTS221_0 == 1)
-  ret = IKS01A2_ENV_SENSOR_Init(HTS221_0, ENV_TEMPERATURE | ENV_HUMIDITY);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-#endif /* USE_IKS01A2_ENV_SENSOR_HTS221_0 */
-#if (USE_IKS01A2_ENV_SENSOR_LPS22HB_0 == 1)
-  ret = IKS01A2_ENV_SENSOR_Init(LPS22HB_0, ENV_TEMPERATURE | ENV_PRESSURE);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-#endif /* USE_IKS01A2_ENV_SENSOR_LPS22HB_0 */
-#if (USE_IKS01A3_ENV_SENSOR_HTS221_0 == 1)
-  ret = IKS01A3_ENV_SENSOR_Init(IKS01A3_HTS221_0, ENV_TEMPERATURE | ENV_HUMIDITY);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-#endif /* USE_IKS01A3_ENV_SENSOR_HTS221_0 */
-#if (USE_IKS01A3_ENV_SENSOR_LPS22HH_0 == 1)
-  ret = IKS01A3_ENV_SENSOR_Init(IKS01A3_LPS22HH_0, ENV_TEMPERATURE | ENV_PRESSURE);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-#endif /* USE_IKS01A3_ENV_SENSOR_LPS22HH_0 */
 
-  /* Enable */
-#if (USE_IKS01A2_ENV_SENSOR_HTS221_0 == 1)
-  ret = IKS01A2_ENV_SENSOR_Enable(HTS221_0, ENV_HUMIDITY);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-  ret = IKS01A2_ENV_SENSOR_Enable(HTS221_0, ENV_TEMPERATURE);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-#endif /* USE_IKS01A2_ENV_SENSOR_HTS221_0 */
-#if (USE_IKS01A2_ENV_SENSOR_LPS22HB_0 == 1)
-  ret = IKS01A2_ENV_SENSOR_Enable(LPS22HB_0, ENV_PRESSURE);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-  ret = IKS01A2_ENV_SENSOR_Enable(LPS22HB_0, ENV_TEMPERATURE);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-#endif /* USE_IKS01A2_ENV_SENSOR_LPS22HB_0 */
-#if (USE_IKS01A3_ENV_SENSOR_HTS221_0 == 1)
-  ret = IKS01A3_ENV_SENSOR_Enable(IKS01A3_HTS221_0, ENV_HUMIDITY);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-  ret = IKS01A3_ENV_SENSOR_Enable(IKS01A3_HTS221_0, ENV_TEMPERATURE);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-#endif /* USE_IKS01A3_ENV_SENSOR_HTS221_0 */
-#if (USE_IKS01A3_ENV_SENSOR_LPS22HH_0 == 1)
-  ret = IKS01A3_ENV_SENSOR_Enable(IKS01A3_LPS22HH_0, ENV_PRESSURE);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-  ret = IKS01A3_ENV_SENSOR_Enable(IKS01A3_LPS22HH_0, ENV_TEMPERATURE);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-#endif /* USE_IKS01A3_ENV_SENSOR_LPS22HH_0 */
+#if	LIS3DH_ENABLED
+  lis3dh_reg_t reg;
 
-  /* Get capabilities */
-#if (USE_IKS01A2_ENV_SENSOR_HTS221_0 == 1)
-  ret = IKS01A2_ENV_SENSOR_GetCapabilities(HTS221_0, &EnvCapabilities);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-#endif /* USE_IKS01A2_ENV_SENSOR_HTS221_0 */
-#if (USE_IKS01A2_ENV_SENSOR_LPS22HB_0 == 1)
-  ret = IKS01A2_ENV_SENSOR_GetCapabilities(LPS22HB_0, &EnvCapabilities);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-#endif /* USE_IKS01A2_ENV_SENSOR_LPS22HB_0 */
-#if (USE_IKS01A3_ENV_SENSOR_HTS221_0 == 1)
-  ret = IKS01A3_ENV_SENSOR_GetCapabilities(IKS01A3_HTS221_0, &EnvCapabilities);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-#endif /* USE_IKS01A3_ENV_SENSOR_HTS221_0 */
-#if (USE_IKS01A3_ENV_SENSOR_LPS22HH_0 == 1)
-  ret = IKS01A3_ENV_SENSOR_GetCapabilities(IKS01A3_LPS22HH_0, &EnvCapabilities);
-  if (ret != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-#endif /* USE_IKS01A3_ENV_SENSOR_LPS22HH_0 */
+  /* Initialize mems driver interface */
+  lis3dh_ctx.write_reg = lis3dh_platform_write;
+  lis3dh_ctx.read_reg = lis3dh_platform_read;
+  lis3dh_ctx.mdelay = lis3dh_platform_delay;
+  lis3dh_ctx.handle = &hi2c2;
 
-#elif !defined (SENSOR_ENABLED)
-#error SENSOR_ENABLED not defined
-#endif /* SENSOR_ENABLED  */
+  /* Wait sensor boot time */
+  lis3dh_platform_delay(5);
+
+  /* Check device ID */
+  lis3dh_device_id_get(&lis3dh_ctx, &reg.byte);
+
+  // Initialize LIS3DH as motion detector
+  lis3dh_setReg();
+#endif	// LIS3DH_ENABLED
+
+	if (ms8607_is_connected()) {
+		// initialize MS8607 and remember it
+
+		ms8607_init();	// no error return
+		ms8607_present = (ms8607_reset() == ms8607_status_ok);
+	}
+
   /* USER CODE END EnvSensors_Init */
   return ret;
 }
 
 /* USER CODE BEGIN EF */
 
+/*
+ * External Interrupt callback
+ * Only EXTI used on RAK2270 is for the LIS3DH, so it's best to locate this here
+ */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+
+#if LIS3DH_ENABLED
+  switch (GPIO_Pin) {
+  case  LIS3D_INT1_Pin:
+	  // Only need to call one interrupt handler for LIS3DH
+	  // (both INT1 and INT2 come in on the same IRQ vector)
+	  lis3dh_InterruptHandler();
+      break;
+
+  case  LIS3D_INT2_Pin:
+	  // check to see if source is active
+      break;
+
+    default:
+      break;
+  }
+#endif	// LIS3DH_ENABLED
+
+}
+
 /* USER CODE END EF */
 
 /* Private Functions Definition -----------------------------------------------*/
 /* USER CODE BEGIN PrFD */
+
+#if	LIS3DH_ENABLED
+/*
+ * Generally taken from RAK2270 firmware
+ */
+static void
+lis3dh_setReg()
+{
+  uint16_t md_threshold = 400;	// 400mg XXX: make configurable
+  uint16_t md_sample_rate = LIS3DH_ODR_1Hz;	// XXX: make configurable
+  lis3dh_reg_t lis3dh_reg;
+
+  lis3dh_operating_mode_set(&lis3dh_ctx, LIS3DH_HR_12bit);
+  lis3dh_data_rate_set(&lis3dh_ctx, md_sample_rate);
+  lis3dh_high_pass_int_conf_set(&lis3dh_ctx, LIS3DH_ON_INT1_GEN);
+  lis3dh_high_pass_on_outputs_set(&lis3dh_ctx, PROPERTY_ENABLE);
+
+  lis3dh_pin_int1_config_get(&lis3dh_ctx, &lis3dh_reg.ctrl_reg3);
+  lis3dh_reg.ctrl_reg3.i1_ia1 = PROPERTY_ENABLE;
+  lis3dh_pin_int1_config_set(&lis3dh_ctx, &lis3dh_reg.ctrl_reg3);
+
+  // Forgive me, I love the ?: construct
+  lis3dh_full_scale_set(&lis3dh_ctx,
+		  md_threshold >= 8000 ? LIS3DH_16g :
+		  md_threshold >= 4000 ? LIS3DH_8g :
+		  md_threshold >= 2000 ? LIS3DH_4g : LIS3DH_2g);
+
+  lis3dh_int1_pin_notification_mode_set(&lis3dh_ctx, LIS3DH_INT1_LATCHED);
+
+  lis3dh_int1_gen_conf_get(&lis3dh_ctx, &lis3dh_reg.int1_cfg);
+  lis3dh_reg.int1_cfg.xhie = PROPERTY_ENABLE;
+  lis3dh_reg.int1_cfg.yhie = PROPERTY_ENABLE;
+  lis3dh_reg.int1_cfg.zhie = PROPERTY_ENABLE;
+  lis3dh_int1_gen_conf_set(&lis3dh_ctx, &lis3dh_reg.int1_cfg);
+
+  uint8_t val = md_threshold >= 8000 ? md_threshold / 125 :
+	md_threshold >= 4000 ? md_threshold / 63 :
+    md_threshold >= 2000 ? md_threshold / 31 :
+    md_threshold / 16;
+
+  if (val > 127) {
+	  val = 127;
+  }
+
+  lis3dh_int1_gen_threshold_set(&lis3dh_ctx, val);
+  lis3dh_int1_pin_notification_mode_set(&lis3dh_ctx, LIS3DH_INT1_LATCHED);
+
+  return ;
+}
+
+// check to see if source is active
+// (both INT1 and INT2 come in on the same IRQ vector)
+// edge-triggered, NVIC has been cleared but LIS3DH needs attention
+// HAL_GPIO_ReadPin(LIS3D_INT1_GPIO_Port, LIS3D_INT1_Pin);
+// XXX: osThreadFlagsSet(Thd_LoraSendProcessId, 1);
+
+uint8_t i1history[16];
+uint8_t i1ndx;
+
+static void
+lis3dh_InterruptHandler()
+{
+  lis3dh_reg_t reg;
+
+  // We may have been in STOP mode, need to re-init
+  // ** INTERRUPT_CONTEXT **
+
+  lis3dh_int1_gen_source_get(&lis3dh_ctx, &reg.int1_src);
+
+  i1history[i1ndx++] = reg.byte;
+  if (i1ndx >= 16) {
+	  i1ndx = 0;
+  }
+
+}
+
+
+
+/*
+ * LIS3DH platform interface via I2C
+ */
+
+/*
+ * @brief  Write generic device register (platform dependent)
+ *
+ * @param  handle    customizable argument. In this examples is used in
+ *                   order to select the correct sensor bus handler.
+ * @param  reg       register to write
+ * @param  bufp      pointer to data to write in register reg
+ * @param  len       number of consecutive register to write
+ *
+ */
+static int32_t
+lis3dh_platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
+                              uint16_t len)
+{
+  /* Write multiple command */
+  reg |= 0x80;
+  HAL_I2C_Mem_Write(handle, LIS3DH_I2C_ADD_H, reg,
+                    I2C_MEMADD_SIZE_8BIT, (uint8_t*) bufp, len, 1000);
+
+  return (0);
+}
+
+/*
+ * @brief  Read generic device register (platform dependent)
+ *
+ * @param  handle    customizable argument. In this examples is used in
+ *                   order to select the correct sensor bus handler.
+ * @param  reg       register to read
+ * @param  bufp      pointer to buffer that store the data read
+ * @param  len       number of consecutive register to read
+ *
+ */
+static int32_t
+lis3dh_platform_read(void *handle, uint8_t reg, uint8_t *bufp,
+                             uint16_t len)
+{
+  /* Read multiple command */
+  reg |= 0x80;
+  HAL_I2C_Mem_Read(handle, LIS3DH_I2C_ADD_H, reg,
+                   I2C_MEMADD_SIZE_8BIT, bufp, len, 1000);
+  return (0);
+}
+
+
+/*
+ * @brief  platform specific delay (platform dependent)
+ *
+ * @param  ms        delay in ms
+ *
+ */
+static void
+lis3dh_platform_delay(uint32_t ms)
+{
+  osDelay(ms);
+}
+#endif	// LIS3DH_ENABLED
 
 /* USER CODE END PrFD */

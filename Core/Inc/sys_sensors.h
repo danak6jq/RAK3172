@@ -57,10 +57,7 @@ typedef struct
 /* Exported constants --------------------------------------------------------*/
 
 /* USER CODE BEGIN EC */
-#if defined (SENSOR_ENABLED) && (SENSOR_ENABLED == 1) && defined (X_NUCLEO_IKS01A2)
-#define HTS221_0    0U
-#define LPS22HB_0   1U
-#endif /* SENSOR_ENABLED & X_NUCLEO_IKS01A2 */
+
 /* USER CODE END EC */
 
 /* External variables --------------------------------------------------------*/

@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    lora_app.c
-  * @author  MCD Application Team
-  * @brief   Application of the LRWAN Middleware
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    lora_app.c
+ * @author  MCD Application Team
+ * @brief   Application of the LRWAN Middleware
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2026 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -36,6 +36,8 @@
 #include "flash_if.h"
 
 /* USER CODE BEGIN Includes */
+
+#include "ms8607.h"
 
 /* USER CODE END Includes */
 
@@ -348,23 +350,28 @@ static void Thd_LmHandlerProcess(void *argument);
 
 /* USER CODE BEGIN PV */
 /**
-  * @brief User application buffer
-  */
+ * @brief User application buffer
+ */
 static uint8_t AppDataBuffer[LORAWAN_APP_DATA_BUFFER_MAX_SIZE];
 
 /**
-  * @brief User application data structure
-  */
+ * @brief User application data structure
+ */
 static LmHandlerAppData_t AppData = { 0, 0, AppDataBuffer };
 
 /**
-  * @brief Specifies the state of the application LED
-  */
+ * @brief Specifies the state of the application LED
+ */
 static uint8_t AppLedStateOn = RESET;
 /**
-  * Temp buffer to store a FLASH page in RAM when partial replacement is needed
-  */
+ * Temp buffer to store a FLASH page in RAM when partial replacement is needed
+ */
 static uint8_t FLASH_RAM_buffer[FLASH_IF_BUFFER_SIZE];
+
+#if	LIS3DH_ENABLED
+extern uint8_t i1ndx;
+#endif	// LIS3DH_ENABLED
+
 /* USER CODE END PV */
 
 /* Exported functions ---------------------------------------------------------*/
@@ -376,49 +383,57 @@ void LoRaWAN_Init(void)
 {
   /* USER CODE BEGIN LoRaWAN_Init_LV */
 
-  uint32_t feature_version = 0UL;
+	uint32_t feature_version = 0UL;
   /* USER CODE END LoRaWAN_Init_LV */
 
   /* USER CODE BEGIN LoRaWAN_Init_1 */
-  /* Get LoRaWAN APP version*/
-  APP_LOG(TS_OFF, VLEVEL_M, "APPLICATION_VERSION: V%X.%X.%X\r\n",
-          (uint8_t)(APP_VERSION_MAIN),
-          (uint8_t)(APP_VERSION_SUB1),
-          (uint8_t)(APP_VERSION_SUB2));
+	/* Get LoRaWAN APP version*/
+	APP_LOG(TS_OFF, VLEVEL_M, "APPLICATION_VERSION: V%X.%X.%X\r\n",
+			(uint8_t)(APP_VERSION_MAIN), (uint8_t)(APP_VERSION_SUB1),
+			(uint8_t)(APP_VERSION_SUB2));
 
-  /* Get MW LoRaWAN info */
-  APP_LOG(TS_OFF, VLEVEL_M, "MW_LORAWAN_VERSION:  V%X.%X.%X\r\n",
-          (uint8_t)(LORAWAN_VERSION_MAIN),
-          (uint8_t)(LORAWAN_VERSION_SUB1),
-          (uint8_t)(LORAWAN_VERSION_SUB2));
+	/* Get MW LoRaWAN info */
+	APP_LOG(TS_OFF, VLEVEL_M, "MW_LORAWAN_VERSION:  V%X.%X.%X\r\n",
+			(uint8_t)(LORAWAN_VERSION_MAIN), (uint8_t)(LORAWAN_VERSION_SUB1),
+			(uint8_t)(LORAWAN_VERSION_SUB2));
 
-  /* Get MW SubGhz_Phy info */
-  APP_LOG(TS_OFF, VLEVEL_M, "MW_RADIO_VERSION:    V%X.%X.%X\r\n",
-          (uint8_t)(SUBGHZ_PHY_VERSION_MAIN),
-          (uint8_t)(SUBGHZ_PHY_VERSION_SUB1),
-          (uint8_t)(SUBGHZ_PHY_VERSION_SUB2));
+	/* Get MW SubGhz_Phy info */
+	APP_LOG(TS_OFF, VLEVEL_M, "MW_RADIO_VERSION:    V%X.%X.%X\r\n",
+			(uint8_t)(SUBGHZ_PHY_VERSION_MAIN),
+			(uint8_t)(SUBGHZ_PHY_VERSION_SUB1),
+			(uint8_t)(SUBGHZ_PHY_VERSION_SUB2));
 
-  /* Get LoRaWAN Link Layer info */
-  LmHandlerGetVersion(LORAMAC_HANDLER_L2_VERSION, &feature_version);
-  APP_LOG(TS_OFF, VLEVEL_M, "L2_SPEC_VERSION:     V%X.%X.%X\r\n",
-          (uint8_t)(feature_version >> 24),
-          (uint8_t)(feature_version >> 16),
-          (uint8_t)(feature_version >> 8));
+	/* Get LoRaWAN Link Layer info */
+	LmHandlerGetVersion(LORAMAC_HANDLER_L2_VERSION, &feature_version);
+	APP_LOG(TS_OFF, VLEVEL_M, "L2_SPEC_VERSION:     V%X.%X.%X\r\n",
+			(uint8_t )(feature_version >> 24),
+			(uint8_t )(feature_version >> 16), (uint8_t )(feature_version >> 8));
 
-  /* Get LoRaWAN Regional Parameters info */
-  LmHandlerGetVersion(LORAMAC_HANDLER_REGION_VERSION, &feature_version);
-  APP_LOG(TS_OFF, VLEVEL_M, "RP_SPEC_VERSION:     V%X-%X.%X.%X\r\n",
-          (uint8_t)(feature_version >> 24),
-          (uint8_t)(feature_version >> 16),
-          (uint8_t)(feature_version >> 8),
-          (uint8_t)(feature_version));
+	/* Get LoRaWAN Regional Parameters info */
+	LmHandlerGetVersion(LORAMAC_HANDLER_REGION_VERSION, &feature_version);
+	APP_LOG(TS_OFF, VLEVEL_M, "RP_SPEC_VERSION:     V%X-%X.%X.%X\r\n",
+			(uint8_t )(feature_version >> 24),
+			(uint8_t )(feature_version >> 16), (uint8_t )(feature_version >> 8),
+			(uint8_t )(feature_version));
 
+#if 0
+	uint8_t fm_buf[256];
 
+	// test - read from the external flash
+	HAL_I2C_Mem_Read(&hi2c2, 0xA1, 0x0000,
+			I2C_MEMADD_SIZE_16BIT, fm_buf, 256, 1000);
 
-  if (FLASH_IF_Init(FLASH_RAM_buffer) != FLASH_IF_OK)
-  {
-    Error_Handler();  // XXX: improve this
-  }
+	fm_buf[0] = 0xff;
+	fm_buf[1] = 0xff;
+	HAL_GPIO_WritePin(WP_GPIO_Port, WP_Pin, GPIO_PIN_RESET);
+	HAL_I2C_Mem_Write(&hi2c2, 0xA1, 0x0000,
+			I2C_MEMADD_SIZE_16BIT, fm_buf, 8, 1000);
+	HAL_GPIO_WritePin(WP_GPIO_Port, WP_Pin, GPIO_PIN_SET);
+#endif
+
+	if (FLASH_IF_Init(FLASH_RAM_buffer) != FLASH_IF_OK) {
+		Error_Handler();  // XXX: improve this
+	}
 
   /* USER CODE END LoRaWAN_Init_1 */
 
@@ -478,30 +493,6 @@ void LoRaWAN_Init(void)
 }
 
 /* USER CODE BEGIN PB_Callbacks */
-
-#if 0 /* User should remove the #if 0 statement and adapt the below code according with his needs*/
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  switch (GPIO_Pin)
-  {
-    case  BUT1_Pin:
-      /* Note: when "EventType == TX_ON_TIMER" this GPIO is not initialized */
-      if (EventType == TX_ON_EVENT)
-      {
-        osThreadFlagsSet(Thd_LoraSendProcessId, 1);
-      }
-      break;
-    case  BUT2_Pin:
-      osThreadFlagsSet(Thd_LoraStopJoinId, 1);
-      break;
-    case  BUT3_Pin:
-      osThreadFlagsSet(Thd_LoraStoreContextId, 1);
-      break;
-    default:
-      break;
-  }
-}
-#endif
 
 /* USER CODE END PB_Callbacks */
 
@@ -580,185 +571,139 @@ static void Thd_LoraStopJoin(void *argument)
 static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
 {
   /* USER CODE BEGIN OnRxData_1 */
-	  uint8_t RxPort = 0;
+	uint8_t RxPort = 0;
 
-	  if (params != NULL)
-	  {
+	if (params != NULL) {
 
+		if (params->IsMcpsIndication) {
+			if (appData != NULL) {
+				RxPort = appData->Port;
+				if (appData->Buffer != NULL) {
+					switch (appData->Port) {
+					case LORAWAN_SWITCH_CLASS_PORT:
+						/*this port switches the class*/
+						if (appData->BufferSize == 1) {
+							switch (appData->Buffer[0]) {
+							case 0: {
+								LmHandlerRequestClass(CLASS_A);
+								break;
+							}
+							case 1: {
+								LmHandlerRequestClass(CLASS_B);
+								break;
+							}
+							case 2: {
+								LmHandlerRequestClass(CLASS_C);
+								break;
+							}
+							default:
+								break;
+							}
+						}
+						break;
+					case LORAWAN_USER_APP_PORT:
+						if (appData->BufferSize == 1) {
+							AppLedStateOn = appData->Buffer[0] & 0x01;
+							if (AppLedStateOn == RESET) {
+								APP_LOG(TS_OFF, VLEVEL_H, "LED OFF\r\n");
 
-	    if (params->IsMcpsIndication)
-	    {
-	      if (appData != NULL)
-	      {
-	        RxPort = appData->Port;
-	        if (appData->Buffer != NULL)
-	        {
-	          switch (appData->Port)
-	          {
-	            case LORAWAN_SWITCH_CLASS_PORT:
-	              /*this port switches the class*/
-	              if (appData->BufferSize == 1)
-	              {
-	                switch (appData->Buffer[0])
-	                {
-	                  case 0:
-	                  {
-	                    LmHandlerRequestClass(CLASS_A);
-	                    break;
-	                  }
-	                  case 1:
-	                  {
-	                    LmHandlerRequestClass(CLASS_B);
-	                    break;
-	                  }
-	                  case 2:
-	                  {
-	                    LmHandlerRequestClass(CLASS_C);
-	                    break;
-	                  }
-	                  default:
-	                    break;
-	                }
-	              }
-	              break;
-	            case LORAWAN_USER_APP_PORT:
-	              if (appData->BufferSize == 1)
-	              {
-	                AppLedStateOn = appData->Buffer[0] & 0x01;
-	                if (AppLedStateOn == RESET)
-	                {
-	                  APP_LOG(TS_OFF, VLEVEL_H, "LED OFF\r\n");
+							} else {
+								APP_LOG(TS_OFF, VLEVEL_H, "LED ON\r\n");
 
-	                }
-	                else
-	                {
-	                  APP_LOG(TS_OFF, VLEVEL_H, "LED ON\r\n");
+							}
+						}
+						break;
 
-	                }
-	              }
-	              break;
+					default:
 
-	            default:
-
-	              break;
-	          }
-	        }
-	      }
-	    }
-	    if (params->RxSlot < RX_SLOT_NONE)
-	    {
-	      APP_LOG(TS_OFF, VLEVEL_H, "###### D/L FRAME:%04d | PORT:%d | DR:%d | SLOT:%s | RSSI:%d | SNR:%d\r\n",
-	              params->DownlinkCounter, RxPort, params->Datarate, slotStrings[params->RxSlot],
-	              params->Rssi, params->Snr);
-	    }
-	  }
+						break;
+					}
+				}
+			}
+		}
+		if (params->RxSlot < RX_SLOT_NONE) {
+			APP_LOG(TS_OFF, VLEVEL_H,
+					"###### D/L FRAME:%04d | PORT:%d | DR:%d | SLOT:%s | RSSI:%d | SNR:%d\r\n",
+					params->DownlinkCounter, RxPort, params->Datarate,
+					slotStrings[params->RxSlot], params->Rssi, params->Snr);
+		}
+	}
   /* USER CODE END OnRxData_1 */
 }
 
 static void SendTxData(void)
 {
   /* USER CODE BEGIN SendTxData_1 */
-	  LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
-	  uint8_t batteryLevel = GetBatteryLevel();
-	  sensor_t sensor_data;
-	  UTIL_TIMER_Time_t nextTxIn = 0;
 
-	  if (LmHandlerIsBusy() == false)
-	  {
-	#ifdef CAYENNE_LPP
-	  uint8_t channel = 0;
-	#else
-	  uint16_t pressure = 0;
-	  int16_t temperature = 0;
-	  uint16_t humidity = 0;
-	  uint32_t i = 0;
-	  int32_t latitude = 0;
-	  int32_t longitude = 0;
-	  uint16_t altitudeGps = 0;
-	#endif /* CAYENNE_LPP */
+	LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
+	// uint8_t batteryLevel = GetBatteryLevel();
+	sensor_t sensor_data;
+	UTIL_TIMER_Time_t nextTxIn = 0;
 
-	  EnvSensors_Read(&sensor_data);
+	/* report-on-change memory */
+	static float lastTemperature = -1000.0f, lastPressure = -1.0f,
+			lastHumidity = -1.0f;
+	static uint32_t skippedTx = 0;
 
-	  APP_LOG(TS_ON, VLEVEL_M, "VDDA: %d\r\n", batteryLevel);
-	  APP_LOG(TS_ON, VLEVEL_M, "temp: %d\r\n", (int16_t)(sensor_data.temperature));
+	if (LmHandlerIsBusy() == false) {
+		uint8_t channel = 0;
 
-	  AppData.Port = LORAWAN_USER_APP_PORT;
+		EnvSensors_Read(&sensor_data);
 
-	#ifdef CAYENNE_LPP
-	  CayenneLppReset();
-	  CayenneLppAddBarometricPressure(channel++, sensor_data.pressure);
-	  CayenneLppAddTemperature(channel++, sensor_data.temperature);
-	  CayenneLppAddRelativeHumidity(channel++, (uint16_t)(sensor_data.humidity));
+		/*
+		 * 5mb
+		 * 0.2C
+		 * 2%
+		 */
+		if (skippedTx >= 120
+				|| (fabsf(sensor_data.temperature - lastTemperature) >= 0.2f)
+				|| (fabsf(sensor_data.humidity - lastHumidity) >= 1.0f)
+				|| (fabsf(sensor_data.pressure - lastPressure) >= 1.0f)) {
 
-	  if ((LmHandlerParams.ActiveRegion != LORAMAC_REGION_US915) && (LmHandlerParams.ActiveRegion != LORAMAC_REGION_AU915)
-	      && (LmHandlerParams.ActiveRegion != LORAMAC_REGION_AS923))
-	  {
-	    CayenneLppAddDigitalInput(channel++, GetBatteryLevel());
-	    CayenneLppAddDigitalOutput(channel++, AppLedStateOn);
-	  }
+			skippedTx = 0;
+			lastTemperature = sensor_data.temperature;
+			lastHumidity = sensor_data.humidity;
+			lastPressure = sensor_data.pressure;
 
-	  CayenneLppCopy(AppData.Buffer);
-	  AppData.BufferSize = CayenneLppGetSize();
-	#else  /* not CAYENNE_LPP */
-	  humidity    = (uint16_t)(sensor_data.humidity * 10);            /* in %*10     */
-	  temperature = (int16_t)(sensor_data.temperature);
-	  pressure = (uint16_t)(sensor_data.pressure * 100 / 10); /* in hPa / 10 */
+#if	LIS3DH_ENABLED
+		// APP_LOG(TS_ON, VLEVEL_M, "I2C2 ready: %d\r\n", HAL_I2C_IsDeviceReady(&hi2c2, 0x19 << 1, 10, HAL_MAX_DELAY));
+		APP_LOG(TS_ON, VLEVEL_M, "i1ndx: %u\r\n", i1ndx);
+#endif	// LIS3DH_ENABLED
 
-	  AppData.Buffer[i++] = AppLedStateOn;
-	  AppData.Buffer[i++] = (uint8_t)((pressure >> 8) & 0xFF);
-	  AppData.Buffer[i++] = (uint8_t)(pressure & 0xFF);
-	  AppData.Buffer[i++] = (uint8_t)(temperature & 0xFF);
-	  AppData.Buffer[i++] = (uint8_t)((humidity >> 8) & 0xFF);
-	  AppData.Buffer[i++] = (uint8_t)(humidity & 0xFF);
+			AppData.Port = LORAWAN_USER_APP_PORT;
 
-	  if ((LmHandlerParams.ActiveRegion == LORAMAC_REGION_US915) || (LmHandlerParams.ActiveRegion == LORAMAC_REGION_AU915)
-	      || (LmHandlerParams.ActiveRegion == LORAMAC_REGION_AS923))
-	  {
-	    AppData.Buffer[i++] = 0;
-	    AppData.Buffer[i++] = 0;
-	    AppData.Buffer[i++] = 0;
-	    AppData.Buffer[i++] = 0;
-	  }
-	  else
-	  {
-	    latitude = sensor_data.latitude;
-	    longitude = sensor_data.longitude;
+			CayenneLppReset();
+			CayenneLppAddBarometricPressure(channel++, sensor_data.pressure);
+			CayenneLppAddTemperature(channel++, sensor_data.temperature);
+			CayenneLppAddRelativeHumidity(channel++,
+					(uint16_t) (sensor_data.humidity));
+			CayenneLppCopy(AppData.Buffer);
+			AppData.BufferSize = CayenneLppGetSize();
 
-	    AppData.Buffer[i++] = GetBatteryLevel();        /* 1 (very low) to 254 (fully charged) */
-	    AppData.Buffer[i++] = (uint8_t)((latitude >> 16) & 0xFF);
-	    AppData.Buffer[i++] = (uint8_t)((latitude >> 8) & 0xFF);
-	    AppData.Buffer[i++] = (uint8_t)(latitude & 0xFF);
-	    AppData.Buffer[i++] = (uint8_t)((longitude >> 16) & 0xFF);
-	    AppData.Buffer[i++] = (uint8_t)((longitude >> 8) & 0xFF);
-	    AppData.Buffer[i++] = (uint8_t)(longitude & 0xFF);
-	    AppData.Buffer[i++] = (uint8_t)((altitudeGps >> 8) & 0xFF);
-	    AppData.Buffer[i++] = (uint8_t)(altitudeGps & 0xFF);
-	  }
+			status = LmHandlerSend(&AppData, LmHandlerParams.IsTxConfirmed,
+			false);
+			if (LORAMAC_HANDLER_SUCCESS == status) {
+				APP_LOG(TS_ON, VLEVEL_L, "SEND REQUEST\r\n");
+			} else if (LORAMAC_HANDLER_DUTYCYCLE_RESTRICTED == status) {
+				nextTxIn = LmHandlerGetDutyCycleWaitTime();
+				if (nextTxIn > 0) {
+					APP_LOG(TS_ON, VLEVEL_L, "Next Tx in  : ~%d second(s)\r\n",
+							(nextTxIn / 1000));
+				}
+			}
+		} else {
+			skippedTx++;
+		}
+	} else {
+		// XXX: skipped Tx, force next slot
+		skippedTx = 120;
+	}
 
-	  AppData.BufferSize = i;
-	#endif /* CAYENNE_LPP */
-
-	  status = LmHandlerSend(&AppData, LmHandlerParams.IsTxConfirmed, false);
-	  if (LORAMAC_HANDLER_SUCCESS == status)
-	  {
-	    APP_LOG(TS_ON, VLEVEL_L, "SEND REQUEST\r\n");
-	  }
-	  else if (LORAMAC_HANDLER_DUTYCYCLE_RESTRICTED == status)
-	  {
-	    nextTxIn = LmHandlerGetDutyCycleWaitTime();
-	    if (nextTxIn > 0)
-	    {
-	      APP_LOG(TS_ON, VLEVEL_L, "Next Tx in  : ~%d second(s)\r\n", (nextTxIn / 1000));
-	    }
-	  }
-	  }
-
-	  if (EventType == TX_ON_TIMER)
-	  {
-	    UTIL_TIMER_Stop(&TxTimer);
-	    UTIL_TIMER_SetPeriod(&TxTimer, MAX(nextTxIn, TxPeriodicity));
-	    UTIL_TIMER_Start(&TxTimer);
-	  }
+	if (EventType == TX_ON_TIMER) {
+		UTIL_TIMER_Stop(&TxTimer);
+		UTIL_TIMER_SetPeriod(&TxTimer, MAX(nextTxIn, TxPeriodicity));
+		UTIL_TIMER_Start(&TxTimer);
+	}
 
   /* USER CODE END SendTxData_1 */
 }
@@ -784,96 +729,87 @@ static void OnTxTimerEvent(void *context)
 static void OnTxData(LmHandlerTxParams_t *params)
 {
   /* USER CODE BEGIN OnTxData_1 */
-  if ((params != NULL))
-  {
-    /* Process Tx event only if its a mcps response to prevent some internal events (mlme) */
-    if (params->IsMcpsConfirm != 0)
-    {
+	if ((params != NULL)) {
+		/* Process Tx event only if its a mcps response to prevent some internal events (mlme) */
+		if (params->IsMcpsConfirm != 0) {
 
+			APP_LOG(TS_OFF, VLEVEL_M,
+					"\r\n###### ========== MCPS-Confirm =============\r\n");
+			APP_LOG(TS_OFF, VLEVEL_H,
+					"###### U/L FRAME:%04d | PORT:%d | DR:%d | PWR:%d",
+					params->UplinkCounter, params->AppData.Port,
+					params->Datarate, params->TxPower);
 
-      APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### ========== MCPS-Confirm =============\r\n");
-      APP_LOG(TS_OFF, VLEVEL_H, "###### U/L FRAME:%04d | PORT:%d | DR:%d | PWR:%d", params->UplinkCounter,
-              params->AppData.Port, params->Datarate, params->TxPower);
-
-      APP_LOG(TS_OFF, VLEVEL_H, " | MSG TYPE:");
-      if (params->MsgType == LORAMAC_HANDLER_CONFIRMED_MSG)
-      {
-        APP_LOG(TS_OFF, VLEVEL_H, "CONFIRMED [%s]\r\n", (params->AckReceived != 0) ? "ACK" : "NACK");
-      }
-      else
-      {
-        APP_LOG(TS_OFF, VLEVEL_H, "UNCONFIRMED\r\n");
-      }
-    }
-  }
+			APP_LOG(TS_OFF, VLEVEL_H, " | MSG TYPE:");
+			if (params->MsgType == LORAMAC_HANDLER_CONFIRMED_MSG) {
+				APP_LOG(TS_OFF, VLEVEL_H, "CONFIRMED [%s]\r\n",
+						(params->AckReceived != 0) ? "ACK" : "NACK");
+			} else {
+				APP_LOG(TS_OFF, VLEVEL_H, "UNCONFIRMED\r\n");
+			}
+		}
+	}
   /* USER CODE END OnTxData_1 */
 }
 
 static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
 {
   /* USER CODE BEGIN OnJoinRequest_1 */
-  if (joinParams != NULL)
-  {
-    if (joinParams->Status == LORAMAC_HANDLER_SUCCESS)
-    {
-      osThreadFlagsSet(Thd_LoraStoreContextId, 1);
+	if (joinParams != NULL) {
+		if (joinParams->Status == LORAMAC_HANDLER_SUCCESS) {
+			osThreadFlagsSet(Thd_LoraStoreContextId, 1);
 
-      APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### = JOINED = ");
-      if (joinParams->Mode == ACTIVATION_TYPE_ABP)
-      {
-        APP_LOG(TS_OFF, VLEVEL_M, "ABP ======================\r\n");
-      }
-      else
-      {
-        APP_LOG(TS_OFF, VLEVEL_M, "OTAA =====================\r\n");
-      }
-    }
-    else
-    {
-      APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### = JOIN FAILED\r\n");
+			APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### = JOINED = ");
+			if (joinParams->Mode == ACTIVATION_TYPE_ABP) {
+				APP_LOG(TS_OFF, VLEVEL_M, "ABP ======================\r\n");
+			} else {
+				APP_LOG(TS_OFF, VLEVEL_M, "OTAA =====================\r\n");
+			}
+		} else {
+			APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### = JOIN FAILED\r\n");
 
-      if (joinParams->Mode == ACTIVATION_TYPE_OTAA) {
-          APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### = RE-TRYING OTAA JOIN\r\n");
-    	/* re-try the OTAA join */
-    	LmHandlerJoin(ActivationType, LORAWAN_FORCE_REJOIN_AT_BOOT);
-      }
-    }
-  }
+			if (joinParams->Mode == ACTIVATION_TYPE_OTAA) {
+				APP_LOG(TS_OFF, VLEVEL_M,
+						"\r\n###### = RE-TRYING OTAA JOIN\r\n");
+				/* re-try the OTAA join */
+				LmHandlerJoin(ActivationType, LORAWAN_FORCE_REJOIN_AT_BOOT);
+			}
+		}
+	}
   /* USER CODE END OnJoinRequest_1 */
 }
 
 static void OnBeaconStatusChange(LmHandlerBeaconParams_t *params)
 {
   /* USER CODE BEGIN OnBeaconStatusChange_1 */
-  if (params != NULL)
-  {
-    switch (params->State)
-    {
-      default:
-      case LORAMAC_HANDLER_BEACON_LOST:
-      {
-        APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### BEACON LOST\r\n");
-        break;
-      }
-      case LORAMAC_HANDLER_BEACON_RX:
-      {
-        APP_LOG(TS_OFF, VLEVEL_M,
-                "\r\n###### BEACON RECEIVED | DR:%d | RSSI:%d | SNR:%d | FQ:%d | TIME:%d | DESC:%d | "
-                "INFO:02X%02X%02X %02X%02X%02X\r\n",
-                params->Info.Datarate, params->Info.Rssi, params->Info.Snr, params->Info.Frequency,
-                params->Info.Time.Seconds, params->Info.GwSpecific.InfoDesc,
-                params->Info.GwSpecific.Info[0], params->Info.GwSpecific.Info[1],
-                params->Info.GwSpecific.Info[2], params->Info.GwSpecific.Info[3],
-                params->Info.GwSpecific.Info[4], params->Info.GwSpecific.Info[5]);
-        break;
-      }
-      case LORAMAC_HANDLER_BEACON_NRX:
-      {
-        APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### BEACON NOT RECEIVED\r\n");
-        break;
-      }
-    }
-  }
+	if (params != NULL) {
+		switch (params->State) {
+		default:
+		case LORAMAC_HANDLER_BEACON_LOST: {
+			APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### BEACON LOST\r\n");
+			break;
+		}
+		case LORAMAC_HANDLER_BEACON_RX: {
+			APP_LOG(TS_OFF, VLEVEL_M,
+					"\r\n###### BEACON RECEIVED | DR:%d | RSSI:%d | SNR:%d | FQ:%d | TIME:%d | DESC:%d | "
+							"INFO:02X%02X%02X %02X%02X%02X\r\n",
+					params->Info.Datarate, params->Info.Rssi, params->Info.Snr,
+					params->Info.Frequency, params->Info.Time.Seconds,
+					params->Info.GwSpecific.InfoDesc,
+					params->Info.GwSpecific.Info[0],
+					params->Info.GwSpecific.Info[1],
+					params->Info.GwSpecific.Info[2],
+					params->Info.GwSpecific.Info[3],
+					params->Info.GwSpecific.Info[4],
+					params->Info.GwSpecific.Info[5]);
+			break;
+		}
+		case LORAMAC_HANDLER_BEACON_NRX: {
+			APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### BEACON NOT RECEIVED\r\n");
+			break;
+		}
+		}
+	}
   /* USER CODE END OnBeaconStatusChange_1 */
 }
 
@@ -887,7 +823,7 @@ static void OnSysTimeUpdate(void)
 static void OnClassChange(DeviceClass_t deviceClass)
 {
   /* USER CODE BEGIN OnClassChange_1 */
-  APP_LOG(TS_OFF, VLEVEL_M, "Switch to Class %c done\r\n", "ABC"[deviceClass]);
+	APP_LOG(TS_OFF, VLEVEL_M, "Switch to Class %c done\r\n", "ABC"[deviceClass]);
   /* USER CODE END OnClassChange_1 */
 }
 

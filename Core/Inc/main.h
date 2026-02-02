@@ -29,6 +29,17 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32wlxx_hal.h"
 
+#include "stm32wlxx_ll_i2c.h"
+#include "stm32wlxx_ll_bus.h"
+#include "stm32wlxx_ll_cortex.h"
+#include "stm32wlxx_ll_rcc.h"
+#include "stm32wlxx_ll_system.h"
+#include "stm32wlxx_ll_utils.h"
+#include "stm32wlxx_ll_pwr.h"
+#include "stm32wlxx_ll_gpio.h"
+#include "stm32wlxx_ll_dma.h"
+
+#include "stm32wlxx_ll_exti.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -60,8 +71,7 @@ void Error_Handler(void);
 #define RTC_PREDIV_A ((1<<(15-RTC_N_PREDIV_S))-1)
 #define RTC_N_PREDIV_S 10
 #define RTC_PREDIV_S ((1<<RTC_N_PREDIV_S)-1)
-#define HIGH_FREQ_Pin GPIO_PIN_12
-#define HIGH_FREQ_GPIO_Port GPIOB
+
 
 /* USER CODE BEGIN Private defines */
 

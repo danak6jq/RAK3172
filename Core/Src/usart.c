@@ -49,7 +49,7 @@ void MX_LPUART1_UART_Init(void)
   hlpuart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   hlpuart1.Init.ClockPrescaler = UART_PRESCALER_DIV1;
   hlpuart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  hlpuart1.FifoMode = UART_FIFOMODE_ENABLE;
+  hlpuart1.FifoMode = UART_FIFOMODE_DISABLE;
   if (HAL_UART_Init(&hlpuart1) != HAL_OK)
   {
     Error_Handler();
@@ -62,7 +62,7 @@ void MX_LPUART1_UART_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_UARTEx_EnableFifoMode(&hlpuart1) != HAL_OK)
+  if (HAL_UARTEx_DisableFifoMode(&hlpuart1) != HAL_OK)
   {
     Error_Handler();
   }

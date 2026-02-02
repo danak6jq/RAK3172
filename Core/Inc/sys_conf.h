@@ -85,6 +85,7 @@ extern "C" {
 
 /* USER CODE BEGIN EC */
 
+#define	LISD3DH_ENABLED						 0
 /* USER CODE END EC */
 
 /* External variables --------------------------------------------------------*/
