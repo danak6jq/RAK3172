@@ -31,12 +31,12 @@
 
 #include "i2c.h"
 
-#if	LIS3DH_ENABLED
-#include "lis3dh_reg.h"
-#endif
+#include "tim.h"
 
 #include "ms8607.h"
+#include "as3935.h"
 #include "cmsis_os2.h"
+#include "sys_app.h"
 
 /* USER CODE END Includes */
 
@@ -85,41 +85,10 @@ bool ms8607_present = false;
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
 
-#if	LIS3DH_ENABLED
-// configure LIS3DH
-static void lis3dh_setReg();
-
-// LIS3DH interrupt handler
-static void lis3dh_InterruptHandler();
-
-static int32_t
-lis3dh_platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
-                              uint16_t len);
-
-/*
- * @brief  Read generic device register (platform dependent)
- *
- * @param  handle    customizable argument. In this examples is used in
- *                   order to select the correct sensor bus handler.
- * @param  reg       register to read
- * @param  bufp      pointer to buffer that store the data read
- * @param  len       number of consecutive register to read
- *
- */
-static int32_t
-lis3dh_platform_read(void *handle, uint8_t reg, uint8_t *bufp,
-                             uint16_t len);
-
-
-/*
- * @brief  platform specific delay (platform dependent)
- *
- * @param  ms        delay in ms
- *
- */
-static void
-lis3dh_platform_delay(uint32_t ms);
-#endif	// LIS3DH_ENABLED
+static uint8_t as3935ReadReg(uint8_t reg);
+static void as3935WriteReg(uint8_t reg, uint8_t val);
+static void as3935UseTimer17(void);
+static void as3935UseInterrupt(void);
 
 /* USER CODE END PFP */
 
@@ -145,6 +114,9 @@ int32_t EnvSensors_Read(sensor_t *sensor_data)
 	sensor_data->humidity = HUMIDITY_Value;
 	sensor_data->temperature = TEMPERATURE_Value;
 	sensor_data->pressure = PRESSURE_Value;
+	HAL_Delay(2);
+	sensor_data->as3935_status = as3935ReadReg(0x03);
+	sensor_data->as3935_distance = as3935ReadReg(0x07) & 0x3f;
 
 	return 0;
   /* USER CODE END EnvSensors_Read */
@@ -155,24 +127,7 @@ int32_t EnvSensors_Init(void)
   int32_t ret = 0;
   /* USER CODE BEGIN EnvSensors_Init */
 
-#if	LIS3DH_ENABLED
-  lis3dh_reg_t reg;
 
-  /* Initialize mems driver interface */
-  lis3dh_ctx.write_reg = lis3dh_platform_write;
-  lis3dh_ctx.read_reg = lis3dh_platform_read;
-  lis3dh_ctx.mdelay = lis3dh_platform_delay;
-  lis3dh_ctx.handle = &hi2c2;
-
-  /* Wait sensor boot time */
-  lis3dh_platform_delay(5);
-
-  /* Check device ID */
-  lis3dh_device_id_get(&lis3dh_ctx, &reg.byte);
-
-  // Initialize LIS3DH as motion detector
-  lis3dh_setReg();
-#endif	// LIS3DH_ENABLED
 
 	if (ms8607_is_connected()) {
 		// initialize MS8607 and remember it
@@ -181,6 +136,7 @@ int32_t EnvSensors_Init(void)
 		ms8607_present = (ms8607_reset() == ms8607_status_ok);
 	}
 
+	// XXX: initialize the AS3935
   /* USER CODE END EnvSensors_Init */
   return ret;
 }
@@ -188,27 +144,124 @@ int32_t EnvSensors_Init(void)
 /* USER CODE BEGIN EF */
 
 /*
- * External Interrupt callback
- * Only EXTI used on RAK2270 is for the LIS3DH, so it's best to locate this here
+ * tune antenna
  */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+int32_t
+as3935TuneAntenna(void)
+{
+	uint32_t startCount, endCount, errorValue, lastErrorValue;
+	int16_t errorCount;
+	uint8_t tuneValue, r8, r3;
+	const uint32_t targetCount = (48000000ULL * 512) /  500000ULL;
 
-#if LIS3DH_ENABLED
-  switch (GPIO_Pin) {
-  case  LIS3D_INT1_Pin:
-	  // Only need to call one interrupt handler for LIS3DH
-	  // (both INT1 and INT2 come in on the same IRQ vector)
-	  lis3dh_InterruptHandler();
+	// set the AS3935 for divide by 64 output
+	// using TIM17, measure period of AS3935 output
+	// TIM17 is dividing by 8, so result is fAntenna / 512
+	// divide count by 2 and use as error value; iterate over range 0..15
+	// for minimum error
+
+	as3935UseTimer17();
+
+	r3 = as3935ReadReg(0x03);
+	r3 = (r3 & 0x3f) | 0x80;
+	as3935WriteReg(0x03, r3);
+
+	r8 = as3935ReadReg(0x08);
+	r8 = r8 | 0x80;	// enable internal clock out on INTR
+
+	// start TIM17 for measuring; clocked at 48MHz +/- 0.5%
+	HAL_TIM_IC_Start(&htim17, TIM_CHANNEL_1);
+
+	lastErrorValue = 1000000;
+	for (tuneValue = 0; tuneValue < 16; tuneValue++) {
+		r8 = (r8 & 0xf0) | tuneValue;
+		as3935WriteReg(0x08, r8);
+
+		// discard potentially stale capture
+		// give antenna tuning a chance to settle down
+		while (!(htim17.Instance->SR & 2))
+				;
+		startCount = HAL_TIM_ReadCapturedValue(&htim17, TIM_CHANNEL_1);
+
+		// read beginning of cycle
+		while (!(htim17.Instance->SR & 2))
+				;
+		startCount = HAL_TIM_ReadCapturedValue(&htim17, TIM_CHANNEL_1);
+
+		// spin waiting for full cycle to complete
+		while (!(htim17.Instance->SR & 2))
+				;
+		endCount = HAL_TIM_ReadCapturedValue(&htim17, TIM_CHANNEL_1);
+		errorCount = endCount - startCount;
+
+		// divide count by 2 to drop off indeterminate LSB
+		errorValue = (targetCount - errorCount) >> 1;
+		if (errorValue > lastErrorValue) {
+			// done, break
       break;
+  }
+		lastErrorValue = errorValue;
+	}
 
-  case  LIS3D_INT2_Pin:
-	  // check to see if source is active
+	// stop TIM17 and turn off AS3935 clock output
+	HAL_TIM_IC_Stop(&htim17, TIM_CHANNEL_1);
+	r8 &= ~0x80;
+	as3935WriteReg(0x08, r8);
+	as3935UseInterrupt();
+	return (0);
+}
+
+
+
+void
+as3935Init(void)
+{
+	uint8_t r;
+
+	as3935WriteReg(0x3c, 0x96);	// preset default
+	r = as3935ReadReg(0x01);
+	r = (r & 0xf0) | 0x04;	// set WDTH
+	as3935WriteReg(0x01, r);
+	as3935TuneAntenna();
+	as3935WriteReg(0x3d, 0x96);	// Calib RCOs
+	HAL_Delay(2);
+	r = as3935ReadReg(0x08);
+
+	APP_LOG(TS_OFF, VLEVEL_M, "R8: %x\r\n", r);
+
+	as3935UseTimer17();
+	as3935WriteReg(0x08, r | 0x40);
+	HAL_Delay(3);
+	as3935WriteReg(0x08, r & ~0x40);
+	HAL_Delay(3);
+	r = as3935ReadReg(0x03);
+
+	as3935UseInterrupt();
+
+	r = as3935ReadReg(0x3a);
+	APP_LOG(TS_OFF, VLEVEL_M, "TRCO: %x\r\n", r);
+
+	r = as3935ReadReg(0x3b);
+	APP_LOG(TS_OFF, VLEVEL_M, "SRCO: %x\r\n", r);
+  }
+
+
+
+/*
+ * External Interrupt callback
+ */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  extern osThreadId_t Thd_LoraSendProcessId;
+
+  switch (GPIO_Pin) {
+  case  GPIO_PIN_7:
+	  osThreadFlagsSet(Thd_LoraSendProcessId, 2);
       break;
 
     default:
       break;
   }
-#endif	// LIS3DH_ENABLED
 
 }
 
@@ -217,142 +270,75 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 /* Private Functions Definition -----------------------------------------------*/
 /* USER CODE BEGIN PrFD */
 
-#if	LIS3DH_ENABLED
 /*
- * Generally taken from RAK2270 firmware
- */
-static void
-lis3dh_setReg()
-{
-  uint16_t md_threshold = 400;	// 400mg XXX: make configurable
-  uint16_t md_sample_rate = LIS3DH_ODR_1Hz;	// XXX: make configurable
-  lis3dh_reg_t lis3dh_reg;
-
-  lis3dh_operating_mode_set(&lis3dh_ctx, LIS3DH_HR_12bit);
-  lis3dh_data_rate_set(&lis3dh_ctx, md_sample_rate);
-  lis3dh_high_pass_int_conf_set(&lis3dh_ctx, LIS3DH_ON_INT1_GEN);
-  lis3dh_high_pass_on_outputs_set(&lis3dh_ctx, PROPERTY_ENABLE);
-
-  lis3dh_pin_int1_config_get(&lis3dh_ctx, &lis3dh_reg.ctrl_reg3);
-  lis3dh_reg.ctrl_reg3.i1_ia1 = PROPERTY_ENABLE;
-  lis3dh_pin_int1_config_set(&lis3dh_ctx, &lis3dh_reg.ctrl_reg3);
-
-  // Forgive me, I love the ?: construct
-  lis3dh_full_scale_set(&lis3dh_ctx,
-		  md_threshold >= 8000 ? LIS3DH_16g :
-		  md_threshold >= 4000 ? LIS3DH_8g :
-		  md_threshold >= 2000 ? LIS3DH_4g : LIS3DH_2g);
-
-  lis3dh_int1_pin_notification_mode_set(&lis3dh_ctx, LIS3DH_INT1_LATCHED);
-
-  lis3dh_int1_gen_conf_get(&lis3dh_ctx, &lis3dh_reg.int1_cfg);
-  lis3dh_reg.int1_cfg.xhie = PROPERTY_ENABLE;
-  lis3dh_reg.int1_cfg.yhie = PROPERTY_ENABLE;
-  lis3dh_reg.int1_cfg.zhie = PROPERTY_ENABLE;
-  lis3dh_int1_gen_conf_set(&lis3dh_ctx, &lis3dh_reg.int1_cfg);
-
-  uint8_t val = md_threshold >= 8000 ? md_threshold / 125 :
-	md_threshold >= 4000 ? md_threshold / 63 :
-    md_threshold >= 2000 ? md_threshold / 31 :
-    md_threshold / 16;
-
-  if (val > 127) {
-	  val = 127;
-  }
-
-  lis3dh_int1_gen_threshold_set(&lis3dh_ctx, val);
-  lis3dh_int1_pin_notification_mode_set(&lis3dh_ctx, LIS3DH_INT1_LATCHED);
-
-  return ;
-}
-
-// check to see if source is active
-// (both INT1 and INT2 come in on the same IRQ vector)
-// edge-triggered, NVIC has been cleared but LIS3DH needs attention
-// HAL_GPIO_ReadPin(LIS3D_INT1_GPIO_Port, LIS3D_INT1_Pin);
-// XXX: osThreadFlagsSet(Thd_LoraSendProcessId, 1);
-
-uint8_t i1history[16];
-uint8_t i1ndx;
-
-static void
-lis3dh_InterruptHandler()
-{
-  lis3dh_reg_t reg;
-
-  // We may have been in STOP mode, need to re-init
-  // ** INTERRUPT_CONTEXT **
-
-  lis3dh_int1_gen_source_get(&lis3dh_ctx, &reg.int1_src);
-
-  i1history[i1ndx++] = reg.byte;
-  if (i1ndx >= 16) {
-	  i1ndx = 0;
-  }
-
-}
-
-
-
-/*
- * LIS3DH platform interface via I2C
- */
-
-/*
- * @brief  Write generic device register (platform dependent)
- *
- * @param  handle    customizable argument. In this examples is used in
- *                   order to select the correct sensor bus handler.
- * @param  reg       register to write
- * @param  bufp      pointer to data to write in register reg
- * @param  len       number of consecutive register to write
  *
  */
-static int32_t
-lis3dh_platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
-                              uint16_t len)
-{
-  /* Write multiple command */
-  reg |= 0x80;
-  HAL_I2C_Mem_Write(handle, LIS3DH_I2C_ADD_H, reg,
-                    I2C_MEMADD_SIZE_8BIT, (uint8_t*) bufp, len, 1000);
+#define	AS3935_I2C_ADDR	3
 
-  return (0);
+/*
+
+ *
+ */
+static uint8_t
+as3935ReadReg(uint8_t reg)
+{
+	uint8_t data_rd;
+
+	// XXX: need to process HAL_ERROR return
+	(void) HAL_I2C_Mem_Read(&hi2c1, AS3935_I2C_ADDR << 1, reg,
+			I2C_MEMADD_SIZE_8BIT, &data_rd, 1, 1000);
+
+    return (data_rd);
 }
 
 /*
- * @brief  Read generic device register (platform dependent)
- *
- * @param  handle    customizable argument. In this examples is used in
- *                   order to select the correct sensor bus handler.
- * @param  reg       register to read
- * @param  bufp      pointer to buffer that store the data read
- * @param  len       number of consecutive register to read
- *
- */
-static int32_t
-lis3dh_platform_read(void *handle, uint8_t reg, uint8_t *bufp,
-                             uint16_t len)
-{
-  /* Read multiple command */
-  reg |= 0x80;
-  HAL_I2C_Mem_Read(handle, LIS3DH_I2C_ADD_H, reg,
-                   I2C_MEMADD_SIZE_8BIT, bufp, len, 1000);
-  return (0);
-}
 
-
-/*
- * @brief  platform specific delay (platform dependent)
- *
- * @param  ms        delay in ms
  *
  */
 static void
-lis3dh_platform_delay(uint32_t ms)
+as3935WriteReg(uint8_t reg, uint8_t val)
 {
-  osDelay(ms);
+	// XXX: need to process HAL_ERROR return
+	HAL_I2C_Mem_Write(&hi2c1, AS3935_I2C_ADDR << 1, reg,
+	  I2C_MEMADD_SIZE_8BIT, &val, 1, 1000);
 }
-#endif	// LIS3DH_ENABLED
+
+
+/*
+ * Disable AS3935 INTR, route to TIM17 for frequency measurement
+ */
+static void
+as3935UseTimer17(void)
+{
+	  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+	  HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
+	  __HAL_RCC_GPIOA_CLK_ENABLE();
+	  GPIO_InitStruct.Pin = GPIO_PIN_7;
+	  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	  GPIO_InitStruct.Pull = GPIO_NOPULL;
+	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	  GPIO_InitStruct.Alternate = GPIO_AF14_TIM17;
+	  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+}
+/*
+ * Enable AS3935 INT, un-route to TIM17
+ */
+static void
+as3935UseInterrupt(void)
+{
+	  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+	  /*Configure GPIO pin : PA7 */
+	  GPIO_InitStruct.Pin = GPIO_PIN_7;
+	  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+	  GPIO_InitStruct.Pull = GPIO_NOPULL;
+	  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	  /* EXTI interrupt init*/
+	  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
+	  HAL_NVIC_ClearPendingIRQ(EXTI9_5_IRQn);
+	  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+}
 
 /* USER CODE END PrFD */

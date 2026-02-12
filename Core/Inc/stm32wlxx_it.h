@@ -54,6 +54,7 @@ void UsageFault_Handler(void);
 void DebugMon_Handler(void);
 void TAMP_STAMP_LSECSS_SSRU_IRQHandler(void);
 void DMA1_Channel1_IRQHandler(void);
+void EXTI9_5_IRQHandler(void);
 void LPUART1_IRQHandler(void);
 void RTC_Alarm_IRQHandler(void);
 void SUBGHZ_Radio_IRQHandler(void);

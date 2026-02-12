@@ -47,6 +47,8 @@ typedef struct
   /**more may be added*/
   /* USER CODE BEGIN sensor_t */
 
+  uint8_t as3935_status;
+  uint8_t as3935_distance;
   /* USER CODE END sensor_t */
 } sensor_t;
 
@@ -83,6 +85,8 @@ int32_t EnvSensors_Init(void);
 int32_t EnvSensors_Read(sensor_t *sensor_data);
 
 /* USER CODE BEGIN EFP */
+// return code 0 = successful, 1 = out of range
+int32_t as3935TuneAntenna(void);
 
 /* USER CODE END EFP */
 

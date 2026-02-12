@@ -39,6 +39,8 @@
 
 #include "ms8607.h"
 
+#include "i2c.h"
+#include "tim.h"
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
@@ -368,9 +370,7 @@ static uint8_t AppLedStateOn = RESET;
  */
 static uint8_t FLASH_RAM_buffer[FLASH_IF_BUFFER_SIZE];
 
-#if	LIS3DH_ENABLED
-extern uint8_t i1ndx;
-#endif	// LIS3DH_ENABLED
+
 
 /* USER CODE END PV */
 
@@ -430,6 +430,12 @@ void LoRaWAN_Init(void)
 			I2C_MEMADD_SIZE_16BIT, fm_buf, 8, 1000);
 	HAL_GPIO_WritePin(WP_GPIO_Port, WP_Pin, GPIO_PIN_SET);
 #endif
+
+
+	// XXX: tinker with AS3935
+
+	as3935Init();
+
 
 	if (FLASH_IF_Init(FLASH_RAM_buffer) != FLASH_IF_OK) {
 		Error_Handler();  // XXX: improve this
@@ -525,7 +531,7 @@ static void Thd_LoraSendProcess(void *argument)
   UNUSED(argument);
   for (;;)
   {
-    osThreadFlagsWait(1, osFlagsWaitAny, osWaitForever);
+    osThreadFlagsWait(3, osFlagsWaitAny, osWaitForever);
     SendTxData();  /*what you want to do*/
   }
 
@@ -644,18 +650,22 @@ static void SendTxData(void)
 	static float lastTemperature = -1000.0f, lastPressure = -1.0f,
 			lastHumidity = -1.0f;
 	static uint32_t skippedTx = 0;
+	// XXX: clear flags?
 
 	if (LmHandlerIsBusy() == false) {
 		uint8_t channel = 0;
 
 		EnvSensors_Read(&sensor_data);
+		if (sensor_data.as3935_status & 0x0f) {
+			APP_LOG(TS_ON, VLEVEL_L, "AS3935 IRQ %x %u\r\n", sensor_data.as3935_status, sensor_data.as3935_distance);
+		}
 
 		/*
 		 * 5mb
 		 * 0.2C
 		 * 2%
 		 */
-		if (skippedTx >= 120
+		if (skippedTx >= 120 || (sensor_data.as3935_status & 0x0f)
 				|| (fabsf(sensor_data.temperature - lastTemperature) >= 0.2f)
 				|| (fabsf(sensor_data.humidity - lastHumidity) >= 1.0f)
 				|| (fabsf(sensor_data.pressure - lastPressure) >= 1.0f)) {
@@ -665,10 +675,7 @@ static void SendTxData(void)
 			lastHumidity = sensor_data.humidity;
 			lastPressure = sensor_data.pressure;
 
-#if	LIS3DH_ENABLED
-		// APP_LOG(TS_ON, VLEVEL_M, "I2C2 ready: %d\r\n", HAL_I2C_IsDeviceReady(&hi2c2, 0x19 << 1, 10, HAL_MAX_DELAY));
-		APP_LOG(TS_ON, VLEVEL_M, "i1ndx: %u\r\n", i1ndx);
-#endif	// LIS3DH_ENABLED
+
 
 			AppData.Port = LORAWAN_USER_APP_PORT;
 
@@ -677,6 +684,10 @@ static void SendTxData(void)
 			CayenneLppAddTemperature(channel++, sensor_data.temperature);
 			CayenneLppAddRelativeHumidity(channel++,
 					(uint16_t) (sensor_data.humidity));
+			if (sensor_data.as3935_status & 0x0f) {
+				CayenneLppAddDigitalInput(channel++, sensor_data.as3935_status);
+				CayenneLppAddDigitalInput(channel++, sensor_data.as3935_distance);
+			}
 			CayenneLppCopy(AppData.Buffer);
 			AppData.BufferSize = CayenneLppGetSize();
 
